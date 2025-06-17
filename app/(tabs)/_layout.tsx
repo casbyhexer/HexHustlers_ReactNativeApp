@@ -95,20 +95,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="contact"
-        options={{
-          title: 'Contact',
-          tabBarIcon: ({ color, focused }) => (
-            <IconSymbol
-              size={focused ? 28 : 24}
-              name="envelope.fill"
-              color={focused ? CyberpunkColors.primary : color}
-            />
-          ),
-        }}
-      />
-      
-      <Tabs.Screen
         name="hexchatbot"
         options={{
           title: 'AI Chat',
@@ -116,6 +102,20 @@ export default function TabLayout() {
             <IconSymbol
               size={focused ? 28 : 24}
               name="brain.head.profile"
+              color={focused ? CyberpunkColors.primary : color}
+            />
+          ),
+        }}
+      />
+      
+      <Tabs.Screen
+        name="contact"
+        options={{
+          title: 'Contact',
+          tabBarIcon: ({ color, focused }) => (
+            <IconSymbol
+              size={focused ? 28 : 24}
+              name="envelope.fill"
               color={focused ? CyberpunkColors.primary : color}
             />
           ),

@@ -184,36 +184,37 @@ const ContactScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: 15,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 15,
-  },
-  logo: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-  },
-  menuButton: {
-    width: 30,
-    height: 25,
-    justifyContent: 'space-between',
-  },
-  menuLine: {
-    width: '100%',
-    height: 3,
-    backgroundColor: '#00f0ff',
-    borderRadius: 5,
-  },
+      flex: 1,
+      width: '100%',
+      height: '100%',
+    },
+    safeArea: {
+      flex: 1,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 15,
+      paddingVertical: 10,
+      marginBottom: 5,
+    },
+    logo: {
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+    },
+    menuButton: {
+      width: 30,
+      height: 25,
+      justifyContent: 'space-between',
+    },
+    menuLine: {
+      width: '100%',
+      height: 3,
+      backgroundColor: '#00f0ff',
+      borderRadius: 5,
+    },
   contentContainer: {
     flex: 1,
     justifyContent: 'center',
