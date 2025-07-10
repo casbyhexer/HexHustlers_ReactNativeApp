@@ -121,13 +121,9 @@ const ContactScreen = () => {
             style={styles.logo}
             resizeMode="contain"
           />
-          <TouchableOpacity onPress={() => router.back()}>
-            <View style={styles.menuButton}>
-              <View style={styles.menuLine} />
-              <View style={styles.menuLine} />
-              <View style={styles.menuLine} />
-            </View>
-          </TouchableOpacity>
+      <TouchableOpacity onPress={() => router.push('/notifications')}>
+        <Ionicons name="notifications" size={28} color="#00f0ff" />
+      </TouchableOpacity>
         </View>
         
         <View style={styles.contentContainer}>

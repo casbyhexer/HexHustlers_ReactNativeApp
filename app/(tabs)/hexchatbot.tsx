@@ -1,20 +1,21 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-    Alert,
-    Animated,
-    Dimensions,
-    ImageBackground,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Animated,
+  Dimensions,
+  ImageBackground,
+  KeyboardAvoidingView,
+  Linking,
+  Modal,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
@@ -61,10 +62,14 @@ const HexHustlerChatBot = () => {
   const scrollViewRef = useRef<ScrollView>(null);
   const typingAnim = useRef(new Animated.Value(0)).current;
 
+  // Payment URLs
+  const STRIPE_URL = "https://buy.stripe.com/test_fZu3cx4VxbVt0r65P74sE01";
+  const PAYPAL_URL = "https://www.paypal.com/paypalme/CasHexer";
+
   // Enhanced knowledge base with hustler motivation
   const getHustlerResponse = (userMessage: string): HustlerKnowledge => {
     const message = userMessage.toLowerCase();
-    
+
     // Personal/Career Questions
     if (message.includes('about you') || message.includes('who are you') || message.includes('background')) {
       return {
@@ -168,10 +173,66 @@ const HexHustlerChatBot = () => {
     };
   };
 
+  const handlePayment = async (method: 'stripe' | 'paypal') => {
+    try {
+      const url = method === 'stripe' ? STRIPE_URL : PAYPAL_URL;
+      const supported = await Linking.canOpenURL(url);
+      
+      if (supported) {
+        await Linking.openURL(url);
+        setShowUpgradeModal(false);
+        
+        // Show payment confirmation dialog
+        setTimeout(() => {
+          Alert.alert(
+            "Payment Confirmation",
+            "Have you completed your payment?",
+            [
+              { text: "Not Yet", style: "cancel" },
+              { 
+                text: "Yes, I Paid!", 
+                onPress: () => {
+                  setIsPremium(true);
+                  setQuestionCount(0);
+                  Alert.alert("🎉 Welcome to Premium!", "You now have unlimited access to HEX HUSTLER AI!");
+                }
+              }
+            ]
+          );
+        }, 3000);
+      } else {
+        Alert.alert("Error", "Unable to open payment link. Please try again.");
+      }
+    } catch (error) {
+      Alert.alert("Error", "Something went wrong. Please try again.");
+    }
+  };
+
+  const deleteChatHistory = () => {
+    Alert.alert(
+      "Delete Chat History",
+      "Are you sure you want to delete all saved chats? This cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Delete All", 
+          style: "destructive",
+          onPress: () => {
+            setSavedChats([]);
+            Alert.alert("Success", "Chat history deleted!");
+          }
+        }
+      ]
+    );
+  };
+
+  const deleteSingleChat = (chatId: string) => {
+    setSavedChats(prev => prev.filter(chat => chat.id !== chatId));
+  };
+
   const sendMessage = async () => {
     if (!inputText.trim()) return;
 
-    // Check if user has reached the free limit
     if (!isPremium && questionCount >= 5) {
       setShowUpgradeModal(true);
       return;
@@ -190,7 +251,6 @@ const HexHustlerChatBot = () => {
     setIsTyping(true);
     setQuestionCount(prev => prev + 1);
 
-    // Animate typing indicator
     Animated.loop(
       Animated.sequence([
         Animated.timing(typingAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
@@ -198,7 +258,6 @@ const HexHustlerChatBot = () => {
       ])
     ).start();
 
-    // Simulate AI processing time
     setTimeout(() => {
       const hustlerResponse = getHustlerResponse(userMessage.text);
       const botMessage: Message = {
@@ -216,7 +275,6 @@ const HexHustlerChatBot = () => {
   };
 
   const startNewChat = () => {
-    // Save current chat if it has messages beyond the welcome
     if (currentSession.messages.length > 1) {
       const savedChat = {
         ...currentSession,
@@ -225,7 +283,6 @@ const HexHustlerChatBot = () => {
       setSavedChats(prev => [savedChat, ...prev]);
     }
 
-    // Create new chat session
     const newSession: ChatSession = {
       id: Date.now().toString(),
       title: 'New Chat',
@@ -251,25 +308,6 @@ const HexHustlerChatBot = () => {
     setCurrentSession(chat);
     setShowChatHistory(false);
     setQuestionCount(chat.messages.filter(m => m.isUser).length);
-  };
-
-  const handleUpgrade = () => {
-    Alert.alert(
-      "🚀 Upgrade to HEX HUSTLER PREMIUM",
-      "Ready to unlock unlimited AI mentoring?\n\n💎 Premium Benefits:\n• Unlimited questions\n• Priority responses\n• Advanced tech guidance\n• Exclusive hustler strategies\n\n💰 $19.99/R350 monthly\n\nPayment Options:\n• Stripe/PayPal\n• Debit Order\n• Bank Transfer",
-      [
-        { text: "Maybe Later", style: "cancel" },
-        { 
-          text: "Upgrade Now", 
-          onPress: () => {
-            // Here you would integrate with Stripe/PayPal
-            setIsPremium(true);
-            setShowUpgradeModal(false);
-            Alert.alert("🎉 Welcome to Premium!", "You now have unlimited access to HEX HUSTLER AI!");
-          }
-        }
-      ]
-    );
   };
 
   useEffect(() => {
@@ -303,7 +341,7 @@ const HexHustlerChatBot = () => {
     </View>
   );
 
-  const renderQuickActions = () => {
+    const renderQuickActions = () => {
     const actions = [
       "Tell me about your skills",
       "Career advice for developers",
@@ -403,13 +441,13 @@ const HexHustlerChatBot = () => {
           </View>
         </KeyboardAvoidingView>
 
-        {/* Upgrade Modal */}
+        {/* Upgrade Modal with Payment Options */}
         <Modal visible={showUpgradeModal} transparent animationType="slide">
           <View style={styles.modalOverlay}>
             <View style={styles.upgradeModal}>
               <Text style={styles.modalTitle}>🚀 Upgrade to Premium</Text>
               <Text style={styles.modalText}>
-                You've used your 5 free questions! Ready to unlock unlimited AI mentoring?
+                You've used your 5 free questions! Choose your payment method:
               </Text>
               
               <View style={styles.premiumFeatures}>
@@ -421,48 +459,69 @@ const HexHustlerChatBot = () => {
               
               <Text style={styles.priceText}>$19.99/R350 monthly</Text>
               
-              <View style={styles.modalButtons}>
+              <View style={styles.paymentButtons}>
                 <TouchableOpacity 
-                  style={styles.cancelButton}
-                  onPress={() => setShowUpgradeModal(false)}
+                  style={styles.stripeButton}
+                  onPress={() => handlePayment('stripe')}
                 >
-                  <Text style={styles.cancelText}>Maybe Later</Text>
+                  <MaterialCommunityIcons name="credit-card" size={20} color="#fff" />
+                  <Text style={styles.paymentButtonText}>Pay with Stripe</Text>
                 </TouchableOpacity>
                 
                 <TouchableOpacity 
-                  style={styles.upgradeButton}
-                  onPress={handleUpgrade}
+                  style={styles.paypalButton}
+                  onPress={() => handlePayment('paypal')}
                 >
-                  <Text style={styles.upgradeText}>UPGRADE NOW</Text>
+                  <Ionicons name="logo-paypal" size={20} color="#fff" />
+                  <Text style={styles.paymentButtonText}>Pay with PayPal</Text>
                 </TouchableOpacity>
               </View>
+              
+              <TouchableOpacity 
+                style={styles.closeButton}
+                onPress={() => setShowUpgradeModal(false)}
+              >
+                <Text style={styles.closeButtonText}>Maybe Later</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </Modal>
 
-        {/* Chat History Modal */}
+        {/* Chat History Modal with Delete Options */}
         <Modal visible={showChatHistory} transparent animationType="slide">
           <View style={styles.modalOverlay}>
             <View style={styles.historyModal}>
               <View style={styles.historyHeader}>
                 <Text style={styles.historyTitle}>Chat History</Text>
-                <TouchableOpacity onPress={() => setShowChatHistory(false)}>
-                  <MaterialCommunityIcons name="close" size={24} color="#00f0ff" />
-                </TouchableOpacity>
+                <View style={styles.historyActions}>
+                  <TouchableOpacity onPress={deleteChatHistory} style={styles.deleteAllButton}>
+                    <MaterialCommunityIcons name="delete-sweep" size={20} color="#ff4444" />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => setShowChatHistory(false)}>
+                    <MaterialCommunityIcons name="close" size={24} color="#00f0ff" />
+                  </TouchableOpacity>
+                </View>
               </View>
               
               <ScrollView style={styles.historyList}>
                 {savedChats.map((chat) => (
-                  <TouchableOpacity
-                    key={chat.id}
-                    style={styles.historyItem}
-                    onPress={() => loadSavedChat(chat)}
-                  >
-                    <Text style={styles.historyItemTitle}>{chat.title}</Text>
-                    <Text style={styles.historyItemDate}>
-                      {chat.createdAt.toLocaleDateString()}
-                    </Text>
-                  </TouchableOpacity>
+                  <View key={chat.id} style={styles.historyItemContainer}>
+                    <TouchableOpacity
+                      style={styles.historyItem}
+                      onPress={() => loadSavedChat(chat)}
+                    >
+                      <Text style={styles.historyItemTitle}>{chat.title}</Text>
+                      <Text style={styles.historyItemDate}>
+                        {chat.createdAt.toLocaleDateString()}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.deleteButton}
+                      onPress={() => deleteSingleChat(chat.id)}
+                    >
+                      <MaterialCommunityIcons name="delete" size={18} color="#ff4444" />
+                    </TouchableOpacity>
+                  </View>
                 ))}
                 {savedChats.length === 0 && (
                   <Text style={styles.noHistoryText}>No saved chats yet</Text>
@@ -477,14 +536,8 @@ const HexHustlerChatBot = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-  safeArea: {
-    flex: 1,
-  },
+  container: { flex: 1, width: '100%', height: '100%' },
+  safeArea: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -495,41 +548,15 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#00f0ff',
   },
-  headerCenter: {
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#ffffff',
-  },
-  headerSubtitle: {
-    fontSize: 12,
-    color: '#00f0ff',
-    marginTop: 2,
-  },
-  chatContainer: {
-    flex: 1,
-  },
-  messagesContainer: {
-    flex: 1,
-    paddingHorizontal: 15,
-  },
-  messagesContent: {
-    paddingTop: 15,
-    paddingBottom: 20,
-  },
-  messageContainer: {
-    flexDirection: 'row',
-    marginBottom: 15,
-    alignItems: 'flex-end',
-  },
-  userMessage: {
-    justifyContent: 'flex-end',
-  },
-  botMessage: {
-    justifyContent: 'flex-start',
-  },
+  headerCenter: { alignItems: 'center' },
+  headerTitle: { fontSize: 18, fontWeight: 'bold', color: '#ffffff' },
+  headerSubtitle: { fontSize: 12, color: '#00f0ff', marginTop: 2 },
+  chatContainer: { flex: 1 },
+  messagesContainer: { flex: 1, paddingHorizontal: 15 },
+  messagesContent: { paddingTop: 15, paddingBottom: 20 },
+  messageContainer: { flexDirection: 'row', marginBottom: 15, alignItems: 'flex-end' },
+  userMessage: { justifyContent: 'flex-end' },
+  botMessage: { justifyContent: 'flex-start' },
   botIcon: {
     width: 30,
     height: 30,
@@ -539,44 +566,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 8,
   },
-  messageBubble: {
-    maxWidth: width * 0.75,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    borderRadius: 18,
-  },
-  userBubble: {
-    backgroundColor: '#00f0ff',
-    borderBottomRightRadius: 5,
-  },
-  botBubble: {
-    backgroundColor: 'rgba(0,0,0,0.8)',
-    borderWidth: 1,
-    borderColor: '#00f0ff',
-    borderBottomLeftRadius: 5,
-  },
-  messageText: {
-    fontSize: 15,
-    lineHeight: 22,
-  },
-  userText: {
-    color: '#000',
-    fontWeight: '500',
-  },
-  botText: {
-    color: '#ffffff',
-  },
-  timestamp: {
-    fontSize: 10,
-    color: '#999',
-    marginTop: 5,
-    textAlign: 'right',
-  },
-  typingContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    marginBottom: 15,
-  },
+  messageBubble: { maxWidth: width * 0.75, paddingHorizontal: 15, paddingVertical: 12, borderRadius: 18 },
+  userBubble: { backgroundColor: '#00f0ff', borderBottomRightRadius: 5 },
+  botBubble: { backgroundColor: 'rgba(0,0,0,0.8)', borderWidth: 1, borderColor: '#00f0ff', borderBottomLeftRadius: 5 },
+  messageText: { fontSize: 15, lineHeight: 22 },
+  userText: { color: '#000', fontWeight: '500' },
+  botText: { color: '#ffffff' },
+  timestamp: { fontSize: 10, color: '#999', marginTop: 5, textAlign: 'right' },
+  typingContainer: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 15 },
   typingBubble: {
     backgroundColor: 'rgba(0,0,0,0.8)',
     borderWidth: 1,
@@ -586,15 +583,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 15,
   },
-  typingDots: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  typingText: {
-    color: '#00f0ff',
-    fontSize: 14,
-    fontStyle: 'italic',
-  },
+  typingDots: { justifyContent: 'center', alignItems: 'center' },
+  typingText: { color: '#00f0ff', fontSize: 14, fontStyle: 'italic' },
+  
   // Updated Actions Container - minimal space above input
   actionsContainer: {
     paddingHorizontal: 10,
@@ -655,23 +646,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 3,
-    shadowColor: '#00f0ff',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
   },
-  sendButtonDisabled: {
-    backgroundColor: 'rgba(0,240,255,0.3)',
-    elevation: 0,
-    shadowOpacity: 0,
-  },
-  // Modal Styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.8)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  sendButtonDisabled: { backgroundColor: 'rgba(0,240,255,0.3)', elevation: 0 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', alignItems: 'center' },
   upgradeModal: {
     backgroundColor: 'rgba(0,0,0,0.95)',
     borderWidth: 2,
@@ -682,75 +659,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     maxWidth: width * 0.9,
   },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#00f0ff',
-    marginBottom: 15,
-    textAlign: 'center',
-  },
-  modalText: {
-    fontSize: 16,
-    color: '#ffffff',
-    textAlign: 'center',
-    marginBottom: 20,
-    lineHeight: 24,
-  },
-  premiumFeatures: {
-    width: '100%',
-    marginBottom: 20,
-  },
-  featureText: {
-    fontSize: 16,
-    color: '#ffffff',
-    marginBottom: 8,
-    paddingLeft: 10,
-  },
-  priceText: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#00f0ff',
-    marginBottom: 25,
-  },
-  modalButtons: {
+  modalTitle: { fontSize: 24, fontWeight: 'bold', color: '#00f0ff', marginBottom: 15, textAlign: 'center' },
+  modalText: { fontSize: 16, color: '#ffffff', textAlign: 'center', marginBottom: 20, lineHeight: 24 },
+  premiumFeatures: { width: '100%', marginBottom: 20 },
+  featureText: { fontSize: 16, color: '#ffffff', marginBottom: 8, paddingLeft: 10 },
+  priceText: { fontSize: 22, fontWeight: 'bold', color: '#00f0ff', marginBottom: 25 },
+  paymentButtons: { width: '100%', marginBottom: 20 },
+  stripeButton: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#6772e5',
+    borderRadius: 25,
+    paddingVertical: 12,
+    marginBottom: 12,
   },
-  cancelButton: {
-    flex: 1,
+  paypalButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#0070ba',
+    borderRadius: 25,
+    paddingVertical: 12,
+  },
+  paymentButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold', marginLeft: 8 },
+  closeButton: {
     backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: '#666',
     borderRadius: 25,
     paddingVertical: 12,
-    marginRight: 10,
+    paddingHorizontal: 30,
   },
-  cancelText: {
-    color: '#666',
-    fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  upgradeButton: {
-    flex: 1,
-    backgroundColor: '#00f0ff',
-    borderRadius: 25,
-    paddingVertical: 12,
-    marginLeft: 10,
-    elevation: 3,
-    shadowColor: '#00f0ff',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
-  },
-  upgradeText: {
-    color: '#000',
-    fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  // Chat History Modal Styles
+  closeButtonText: { color: '#666', fontSize: 16, fontWeight: '600' },
   historyModal: {
     backgroundColor: 'rgba(0,0,0,0.95)',
     borderWidth: 2,
@@ -769,138 +710,21 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#00f0ff',
   },
-  historyTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#ffffff',
-  },
-  historyList: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
+  historyTitle: { fontSize: 20, fontWeight: 'bold', color: '#ffffff' },
+  historyActions: { flexDirection: 'row', alignItems: 'center' },
+  deleteAllButton: { marginRight: 15 },
+  historyList: { flex: 1, paddingHorizontal: 20 },
+  historyItemContainer: { flexDirection: 'row', alignItems: 'center' },
   historyItem: {
+    flex: 1,
     paddingVertical: 15,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0,240,255,0.2)',
   },
-  historyItemTitle: {
-    fontSize: 16,
-    color: '#ffffff',
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  historyItemDate: {
-    fontSize: 12,
-    color: '#00f0ff',
-  },
-  noHistoryText: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    marginTop: 50,
-    fontStyle: 'italic',
-  },
-  // Premium Badge Styles
-  premiumBadge: {
-    backgroundColor: '#FFD700',
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    marginLeft: 8,
-  },
-  premiumBadgeText: {
-    color: '#000',
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-  // Loading and Error States
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.9)',
-  },
-  loadingText: {
-    color: '#00f0ff',
-    fontSize: 16,
-    marginTop: 15,
-  },
-  errorContainer: {
-    backgroundColor: 'rgba(255,0,0,0.1)',
-    borderWidth: 1,
-    borderColor: '#ff4444',
-    borderRadius: 10,
-    padding: 15,
-    margin: 15,
-  },
-  errorText: {
-    color: '#ff4444',
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  // Floating Action Button
-  fab: {
-    position: 'absolute',
-    bottom: 100,
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#00f0ff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 8,
-    shadowColor: '#00f0ff',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 8,
-  },
-  // Animation Styles
-  slideUp: {
-    transform: [{ translateY: 50 }],
-    opacity: 0,
-  },
-  slideUpActive: {
-    transform: [{ translateY: 0 }],
-    opacity: 1,
-  },
-  // Responsive Design
-  tabletContainer: {
-    maxWidth: 600,
-    alignSelf: 'center',
-  },
-  // Additional UI Elements
-  divider: {
-    height: 1,
-    backgroundColor: 'rgba(0,240,255,0.3)',
-    marginVertical: 10,
-  },
-  chipContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginVertical: 10,
-  },
-  chip: {
-    backgroundColor: 'rgba(0,240,255,0.2)',
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  chipText: {
-    color: '#00f0ff',
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  // Status Bar and Navigation
-  statusBarSpacer: {
-    height: Platform.OS === 'ios' ? 44 : 0,
-    backgroundColor: 'rgba(0,0,0,0.9)',
-  },
-  navigationSafeArea: {
-    backgroundColor: 'rgba(0,0,0,0.9)',
-  },
+  historyItemTitle: { fontSize: 16, color: '#ffffff', fontWeight: '500', marginBottom: 4 },
+  historyItemDate: { fontSize: 12, color: '#00f0ff' },
+  deleteButton: { padding: 10 },
+  noHistoryText: { fontSize: 16, color: '#666', textAlign: 'center', marginTop: 50, fontStyle: 'italic' },
 });
 
 export default HexHustlerChatBot;

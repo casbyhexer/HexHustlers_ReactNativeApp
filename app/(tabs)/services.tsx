@@ -144,13 +144,9 @@ const ServicesScreen = () => {
             style={styles.logo}
             resizeMode="contain"
           />
-          <TouchableOpacity onPress={() => {}}>
-            <View style={styles.menuButton}>
-              <View style={styles.menuLine} />
-              <View style={styles.menuLine} />
-              <View style={styles.menuLine} />
-            </View>
-          </TouchableOpacity>
+      <TouchableOpacity onPress={() => router.push('/notifications')}>
+        <Ionicons name="notifications" size={28} color="#00f0ff" />
+      </TouchableOpacity>
         </View>
         
         <Animated.ScrollView 
@@ -256,17 +252,6 @@ const styles = StyleSheet.create({
       width: 50,
       height: 50,
       borderRadius: 25,
-    },
-    menuButton: {
-      width: 30,
-      height: 25,
-      justifyContent: 'space-between',
-    },
-    menuLine: {
-      width: '100%',
-      height: 3,
-      backgroundColor: '#00f0ff',
-      borderRadius: 5,
     },
   scrollViewContent: {
     paddingBottom: 30,

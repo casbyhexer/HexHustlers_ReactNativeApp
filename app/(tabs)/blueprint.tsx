@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import * as MailComposer from 'expo-mail-composer';
+import * as Notifications from 'expo-notifications';
 import { useRouter } from 'expo-router';
-import * as SMS from 'expo-sms';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
@@ -24,6 +24,15 @@ import {
 
 const { width } = Dimensions.get('window');
 
+// Configure notifications
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
+
 const BlueprintScreen = () => {
   const router = useRouter();
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -35,6 +44,7 @@ const BlueprintScreen = () => {
   const [phone, setPhone] = useState('');
   const [currentPage, setCurrentPage] = useState(0);
   const [uploadedDoc, setUploadedDoc] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const pageNames = ['Plans', 'Rich Version', 'Wealthy Version'];
 
@@ -44,7 +54,35 @@ const BlueprintScreen = () => {
       duration: 800,
       useNativeDriver: true,
     }).start();
+
+    registerForPushNotificationsAsync();
   }, []);
+
+  const registerForPushNotificationsAsync = async () => {
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+    
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+    
+    if (finalStatus !== 'granted') {
+      console.log('Failed to get push token for push notification!');
+      return;
+    }
+  };
+
+  const showPushNotification = async (title: string, body: string) => {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title,
+        body,
+        sound: 'default',
+      },
+      trigger: { seconds: 1 },
+    });
+  };
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const contentOffsetX = event.nativeEvent.contentOffset.x;
@@ -76,32 +114,39 @@ const BlueprintScreen = () => {
     }
   };
 
-  const sendNotifications = async () => {
-    const message = `NEW RICH BLUEPRINT PURCHASE!\n\nCustomer Details:\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nDocument: ${uploadedDoc?.name || 'Attached'}\n\nPlease send "Code Your Success: Blueprint" to this customer.`;
+  const sendEmailWithAttachment = async () => {
+    const emailBody = `NEW RICH BLUEPRINT PURCHASE REQUEST
+
+Customer Details:
+━━━━━━━━━━━━━━━━━━━━
+👤 Name: ${name}
+📧 Email: ${email}
+📱 Phone: ${phone}
+📄 Document: ${uploadedDoc?.name || 'Attached EFT Proof'}
+
+━━━━━━━━━━━━━━━━━━━━
+REQUEST: Please send "Code Your Success: Blueprint" to this customer after verifying payment.
+
+This is an automated email from the Hex Hustlers app.`;
 
     try {
-      // Send SMS
-      const isAvailable = await SMS.isAvailableAsync();
-      if (isAvailable) {
-        await SMS.sendSMSAsync(['+27714008892'], message);
-      }
-    } catch (error) {
-      console.log('SMS Error:', error);
-    }
-
-    try {
-      // Send Email
       const isMailAvailable = await MailComposer.isAvailableAsync();
-      if (isMailAvailable) {
-        await MailComposer.composeAsync({
-          recipients: ['cashexerbusiness@gmail.com'],
-          subject: 'New Rich Blueprint Purchase - Action Required',
-          body: message,
-          attachments: uploadedDoc ? [uploadedDoc.uri] : undefined,
-        });
+      if (!isMailAvailable) {
+        Alert.alert('Error', 'Email is not available on this device');
+        return false;
       }
+
+      const result = await MailComposer.composeAsync({
+        recipients: ['cashexerbusiness@gmail.com'],
+        subject: '🚀 New Rich Blueprint Purchase - Action Required',
+        body: emailBody,
+        attachments: uploadedDoc ? [uploadedDoc.uri] : undefined,
+      });
+
+      return result.status === MailComposer.MailComposerStatus.SENT;
     } catch (error) {
       console.log('Email Error:', error);
+      return false;
     }
   };
 
@@ -115,16 +160,46 @@ const BlueprintScreen = () => {
       return;
     }
 
+    setIsSubmitting(true);
+
     try {
-      await sendNotifications();
-      Alert.alert('Success', 'Your application has been submitted! We will verify your payment and send you the blueprint within 24 hours.');
+      const emailSent = await sendEmailWithAttachment();
+      
+      await showPushNotification(
+        '🎉 Application Submitted!',
+        'Your Rich Blueprint purchase request has been submitted. You will receive your blueprint within 24 hours.'
+      );
+
+      Alert.alert(
+        'Success!', 
+        'Your application has been submitted successfully! We will verify your payment and send you the blueprint within 24 hours.',
+        [
+          {
+            text: 'View Notifications',
+            onPress: () => router.push('/notifications'),
+          },
+          {
+            text: 'OK',
+            style: 'default',
+          }
+        ]
+      );
+
+      setName('');
+      setEmail('');
+      setPhone('');
+      setUploadedDoc(null);
+
     } catch (error) {
+      console.log('Submit Error:', error);
       Alert.alert('Success', 'Your application has been submitted! We will verify your payment and send you the blueprint within 24 hours.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleStripePayment = () => {
-    Linking.openURL('https://buy.stripe.com/test_aFaeVfew77Fd1va1yR4sE00');
+    Linking.openURL('https://buy.stripe.com/test_aFaeVfew37Fd1va1yR4sE00');
   };
 
   const handlePayPalPayment = () => {
@@ -143,6 +218,7 @@ const BlueprintScreen = () => {
         'Real-world code examples',
         'Implementation checklists'
       ],
+      description: 'Blueprint will be sent to your email after EFT or PayPal payment verification.',
       buttonText: 'GET RICH VERSION',
       action: () => navigateToPage(1)
     },
@@ -157,6 +233,7 @@ const BlueprintScreen = () => {
         'Monthly updated content',
         'Exclusive developer resources'
       ],
+      description: 'Blueprint sent via email after Stripe/PayPal subscription. Contact details for monthly consultation calls will be provided.',
       buttonText: 'GET WEALTHY VERSION',
       action: () => navigateToPage(2)
     }
@@ -169,12 +246,8 @@ const BlueprintScreen = () => {
         style={styles.logo}
         resizeMode="contain"
       />
-      <TouchableOpacity onPress={() => router.push('/')}>
-        <View style={styles.menuButton}>
-          <View style={styles.menuLine} />
-          <View style={styles.menuLine} />
-          <View style={styles.menuLine} />
-        </View>
+      <TouchableOpacity onPress={() => router.push('/notifications')}>
+        <Ionicons name="notifications" size={28} color="#00f0ff" />
       </TouchableOpacity>
     </View>
   );
@@ -235,6 +308,8 @@ const BlueprintScreen = () => {
               <Text key={fIndex} style={styles.featureText}>• {feature}</Text>
             ))}
             
+            <Text style={styles.descriptionText}>{option.description}</Text>
+            
             <TouchableOpacity 
               style={styles.blueprintButton}
               onPress={option.action}
@@ -290,12 +365,12 @@ const BlueprintScreen = () => {
           />
           
           <View style={styles.bankingSection}>
-              <Text style={styles.bankingSectionTitle}>EFT Banking Details</Text>
-              <Text style={styles.bankingDetails}>• Bank: Nedbank</Text>
-              <Text style={styles.bankingDetails}>• Account Number: 1211596699</Text>
-              <Text style={styles.bankingDetails}>• Account Type: Current Account</Text>
-              <Text style={styles.bankingDetails}>• Reference: HEX HUSTLERS Private Company</Text>
-              <Text style={styles.bankingDetails}>• Swift Code: NEDSZAJJ</Text>
+            <Text style={styles.bankingSectionTitle}>EFT Banking Details</Text>
+            <Text style={styles.bankingDetails}>• Bank: Nedbank</Text>
+            <Text style={styles.bankingDetails}>• Account Number: 1211596699</Text>
+            <Text style={styles.bankingDetails}>• Account Type: Current Account</Text>
+            <Text style={styles.bankingDetails}>• Reference: HEX HUSTLERS (Pty) Ltd</Text>
+            <Text style={styles.bankingDetails}>• Swift Code: NEDSZAJJ</Text>
           </View>
           
           <View style={styles.uploadSection}>
@@ -315,10 +390,21 @@ const BlueprintScreen = () => {
           </View>
           
           <TouchableOpacity 
-            style={styles.submitButton}
+            style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
             onPress={handleRichSubmit}
+            disabled={isSubmitting}
           >
-            <Text style={styles.submitText}>SUBMIT APPLICATION</Text>
+            <Text style={styles.submitText}>
+              {isSubmitting ? 'SUBMITTING...' : 'EMAIL EFT TO "CASHEXERBUSINESS@GMAIL.COM"'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.paymentButton}
+            onPress={handlePayPalPayment}
+          >
+            <Ionicons name="logo-paypal" size={24} color="#ffffff" />
+            <Text style={styles.paymentButtonText}>Pay with PayPal</Text>
           </TouchableOpacity>
         </View>
         
@@ -372,17 +458,29 @@ const BlueprintScreen = () => {
             style={styles.paymentButton}
             onPress={handleStripePayment}
           >
-              <Ionicons name="card-outline" size={24} color="#ffffff" />
-              <Text style={styles.paymentButtonText}>Subscribe with Stripe</Text>
-            </TouchableOpacity>
+            <Ionicons name="card-outline" size={24} color="#ffffff" />
+            <Text style={styles.paymentButtonText}>Subscribe with Stripe</Text>
+          </TouchableOpacity>
           
           <TouchableOpacity 
             style={styles.paymentButton}
             onPress={handlePayPalPayment}
           >
-              <Ionicons name="logo-paypal" size={24} color="#ffffff" />
-              <Text style={styles.paymentButtonText}>Subscribe with PayPal</Text>
-            </TouchableOpacity>
+            <Ionicons name="logo-paypal" size={24} color="#ffffff" />
+            <Text style={styles.paymentButtonText}>Subscribe with PayPal</Text>
+          </TouchableOpacity>
+
+          <Text style={styles.consultationText}>
+            Monthly consultation calls available - submit your preferred date each month via contact form.
+          </Text>
+
+          <TouchableOpacity 
+            style={styles.contactButton}
+            onPress={() => router.push('/contact')}
+          >
+            <Ionicons name="mail-outline" size={20} color="#ffffff" />
+            <Text style={styles.contactButtonText}>Contact for Consultation Schedule</Text>
+          </TouchableOpacity>
         </View>
         
         <TouchableOpacity 
@@ -451,17 +549,6 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-  },
-  menuButton: {
-    width: 30,
-    height: 25,
-    justifyContent: 'space-between',
-  },
-  menuLine: {
-    width: '100%',
-    height: 3,
-    backgroundColor: '#00f0ff',
-    borderRadius: 5,
   },
   page: {
     flex: 1,
@@ -561,6 +648,14 @@ const styles = StyleSheet.create({
     color: '#e0e0e0',
     marginBottom: 5,
     paddingLeft: 5,
+  },
+  descriptionText: {
+    fontSize: 12,
+    color: '#00f0ff',
+    marginTop: 10,
+    marginBottom: 10,
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
   blueprintButton: {
     backgroundColor: 'rgba(0,240,255,0.2)',
@@ -686,7 +781,8 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     paddingVertical: 15,
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 10,
+    marginBottom: 10,
     borderWidth: 1,
     borderColor: '#00f0ff',
     shadowColor: '#00f0ff',
@@ -694,6 +790,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.5,
     shadowRadius: 8,
     elevation: 5,
+  },
+  submitButtonDisabled: {
+    backgroundColor: 'rgba(0,240,255,0.1)',
+    opacity: 0.6,
   },
   submitText: {
     color: '#ffffff',
@@ -730,6 +830,31 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
     marginLeft: 10,
+  },
+  consultationText: {
+    fontSize: 12,
+    color: '#00f0ff',
+    textAlign: 'center',
+    marginVertical: 15,
+    fontStyle: 'italic',
+  },
+  contactButton: {
+    backgroundColor: 'rgba(0,240,255,0.15)',
+    borderRadius: 15,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(0,240,255,0.4)',
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  contactButtonText: {
+    color: '#ffffff',
+    fontWeight: 'bold',
+    fontSize: 14,
+    marginLeft: 8,
   },
   backToPlansButton: {
     backgroundColor: 'rgba(0,240,255,0.2)',

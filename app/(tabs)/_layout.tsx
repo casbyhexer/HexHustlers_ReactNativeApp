@@ -3,8 +3,8 @@ import React from 'react';
 import { Platform } from 'react-native';
 
 import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
 import CyberpunkTabBar from '@/components/ui/CyberpunkTabBar';
+import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
 // Cyberpunk color scheme matching your landing page
@@ -107,7 +107,6 @@ export default function TabLayout() {
           ),
         }}
       />
-      
       <Tabs.Screen
         name="contact"
         options={{
@@ -120,7 +119,7 @@ export default function TabLayout() {
             />
           ),
         }}
-        />
+      />
     </Tabs>
   );
 }
