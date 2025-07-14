@@ -1,4 +1,6 @@
+import { useNotifications } from '@/contexts/NotificationContext';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
@@ -40,6 +42,15 @@ interface HustlerKnowledge {
 }
 
 const HexHustlerChatBot = () => {
+  const router = useRouter();
+  
+  // Updated destructuring to include all notification methods
+  const { 
+    addPremiumActivatedNotification, 
+    addPremiumPendingNotification, 
+    addPaymentReceivedNotification 
+  } = useNotifications();
+
   const [currentSession, setCurrentSession] = useState<ChatSession>({
     id: '1',
     title: 'New Chat',
@@ -51,7 +62,8 @@ const HexHustlerChatBot = () => {
     }],
     createdAt: new Date(),
   });
-  
+
+  // Rest of your component state and logic remains the same...
   const [savedChats, setSavedChats] = useState<ChatSession[]>([]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -63,10 +75,10 @@ const HexHustlerChatBot = () => {
   const typingAnim = useRef(new Animated.Value(0)).current;
 
   // Payment URLs
-  const STRIPE_URL = "https://buy.stripe.com/test_fZu3cx4VxbVt0r65P74sE01";
   const PAYPAL_URL = "https://www.paypal.com/paypalme/CasHexer";
+  const EMAIL_ADDRESS = "cashexerbusiness@gmail.com";
 
-  // Enhanced knowledge base with hustler motivation
+// Enhanced knowledge base with hustler motivation
   const getHustlerResponse = (userMessage: string): HustlerKnowledge => {
     const message = userMessage.toLowerCase();
 
@@ -173,62 +185,105 @@ const HexHustlerChatBot = () => {
     };
   };
 
-  const handlePayment = async (method: 'stripe' | 'paypal') => {
-    try {
-      const url = method === 'stripe' ? STRIPE_URL : PAYPAL_URL;
-      const supported = await Linking.canOpenURL(url);
+const handlePayPalPayment = async () => {
+  try {
+    const supported = await Linking.canOpenURL(PAYPAL_URL);
+    
+    if (supported) {
+      await Linking.openURL(PAYPAL_URL);
+      setShowUpgradeModal(false);
       
-      if (supported) {
-        await Linking.openURL(url);
-        setShowUpgradeModal(false);
-        
-        // Show payment confirmation dialog
-        setTimeout(() => {
-          Alert.alert(
-            "Payment Confirmation",
-            "Have you completed your payment?",
-            [
-              { text: "Not Yet", style: "cancel" },
-              { 
-                text: "Yes, I Paid!", 
-                onPress: () => {
-                  setIsPremium(true);
-                  setQuestionCount(0);
-                  Alert.alert("🎉 Welcome to Premium!", "You now have unlimited access to HEX HUSTLER AI!");
-                }
+      // Add pending notification immediately
+      addPremiumPendingNotification('paypal');
+      
+      setTimeout(() => {
+        Alert.alert(
+          "Payment Confirmation",
+          "Have you completed your PayPal payment?",
+          [
+            { text: "Not Yet", style: "cancel" },
+            { 
+              text: "Yes, I Paid!", 
+              onPress: () => {
+                // Add payment received notification
+                addPaymentReceivedNotification('paypal');
+                
+                // Activate premium
+                setIsPremium(true);
+                setQuestionCount(0);
+                
+                // Add premium activated notification
+                addPremiumActivatedNotification('paypal');
+                
+                Alert.alert(
+                  "🎉 Welcome to Premium!", 
+                  "You now have unlimited access to HEX HUSTLER AI! Check your notifications for more details.",
+                  [{ text: "Let's Hustle!", style: "default" }]
+                );
               }
-            ]
-          );
-        }, 3000);
-      } else {
-        Alert.alert("Error", "Unable to open payment link. Please try again.");
-      }
-    } catch (error) {
-      Alert.alert("Error", "Something went wrong. Please try again.");
+            }
+          ]
+        );
+      }, 3000);
+    } else {
+      Alert.alert("Error", "Unable to open PayPal link. Please try again.");
     }
-  };
+  } catch (err) {
+    console.error('PayPal payment error:', err);
+    Alert.alert("Error", "Something went wrong. Please try again.");
+  }
+};
 
-  const deleteChatHistory = () => {
-    Alert.alert(
-      "Delete Chat History",
-      "Are you sure you want to delete all saved chats? This cannot be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        { 
-          text: "Delete All", 
-          style: "destructive",
-          onPress: () => {
-            setSavedChats([]);
-            Alert.alert("Success", "Chat history deleted!");
-          }
-        }
-      ]
-    );
-  };
+const handleEmailProof = async () => {
+  try {
+    const subject = "EFT Payment Proof - HEX HUSTLER AI Premium";
+    const body = "Hi,\n\nI have made an EFT payment for HEX HUSTLER AI Premium subscription.\n\nPayment Details:\n- Amount: R350\n- Reference: HEX HUSTLERS (Pty) Ltd\n- Date: [Please add payment date]\n\nPlease find attached proof of payment.\n\nThank you!";
+    const emailUrl = `mailto:${EMAIL_ADDRESS}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    
+    const supported = await Linking.canOpenURL(emailUrl);
+    
+    if (supported) {
+      await Linking.openURL(emailUrl);
+      setShowUpgradeModal(false);
+      
+      // Add pending notification for EFT
+      addPremiumPendingNotification('eft');
+      
+      setTimeout(() => {
+        Alert.alert(
+          "Email Opened",
+          "Please attach your EFT proof of payment and send the email. We'll send you a notification when your premium account is activated (within 24 hours).",
+          [{ text: "OK", style: "default" }]
+        );
+      }, 1000);
+    } else {
+      Alert.alert("Error", "Unable to open email client. Please manually send proof to cashexerbusiness@gmail.com");
+    }
+  } catch (err) {
+    console.error('Email proof error:', err);
+    Alert.alert("Error", "Something went wrong. Please try again.");
+  }
+};
 
-  const deleteSingleChat = (chatId: string) => {
-    setSavedChats(prev => prev.filter(chat => chat.id !== chatId));
-  };
+// Add this helper function to simulate EFT payment verification (for testing)
+/*const simulateEftVerification = () => {
+  // This would normally be triggered by your backend when payment is verified
+  setTimeout(() => {
+    addPaymentReceivedNotification('eft');
+    
+    setTimeout(() => {
+      setIsPremium(true);
+      setQuestionCount(0);
+      addPremiumActivatedNotification('eft');
+      
+      Alert.alert(
+        "🎉 Premium Activated!",
+        "Your EFT payment has been verified and your premium account is now active!",
+        [{ text: "Awesome!", style: "default" }]
+      );
+    }, 2000);
+  }, 10000); // Simulate 10 second verification process
+};*/
 
   const sendMessage = async () => {
     if (!inputText.trim()) return;
@@ -278,7 +333,7 @@ const HexHustlerChatBot = () => {
     if (currentSession.messages.length > 1) {
       const savedChat = {
         ...currentSession,
-        title: generateChatTitle(currentSession.messages[1]?.text || 'Chat'),
+        title: currentSession.messages[1]?.text.split(' ').slice(0, 4).join(' ') + '...' || 'Chat',
       };
       setSavedChats(prev => [savedChat, ...prev]);
     }
@@ -299,15 +354,32 @@ const HexHustlerChatBot = () => {
     setQuestionCount(0);
   };
 
-  const generateChatTitle = (firstMessage: string): string => {
-    const words = firstMessage.split(' ').slice(0, 4);
-    return words.join(' ') + '...';
-  };
-
   const loadSavedChat = (chat: ChatSession) => {
     setCurrentSession(chat);
     setShowChatHistory(false);
     setQuestionCount(chat.messages.filter(m => m.isUser).length);
+  };
+
+  const deleteChatHistory = () => {
+    Alert.alert(
+      "Delete Chat History",
+      "Are you sure you want to delete all saved chats?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Delete All", 
+          style: "destructive",
+          onPress: () => {
+            setSavedChats([]);
+            Alert.alert("Success", "Chat history deleted!");
+          }
+        }
+      ]
+    );
+  };
+
+  const deleteSingleChat = (chatId: string) => {
+    setSavedChats(prev => prev.filter(chat => chat.id !== chatId));
   };
 
   useEffect(() => {
@@ -341,12 +413,12 @@ const HexHustlerChatBot = () => {
     </View>
   );
 
-    const renderQuickActions = () => {
+const renderQuickActions = () => {
     const actions = [
       "Tell me about your skills",
       "Career advice for developers",
       "Mobile app development tips",
-      "Freelancing guidance",
+      "Freelance guidance",
       "Motivational boost!"
     ];
     
@@ -364,6 +436,7 @@ const HexHustlerChatBot = () => {
       </ScrollView>
     );
   };
+
 
   return (
     <ImageBackground
@@ -384,10 +457,18 @@ const HexHustlerChatBot = () => {
               {isPremium ? "💎 PREMIUM" : `${5 - questionCount} questions left`}
             </Text>
           </View>
-          
-          <TouchableOpacity onPress={startNewChat}>
-            <MaterialCommunityIcons name="plus-circle" size={24} color="#00f0ff" />
-          </TouchableOpacity>
+
+          <View style={styles.headerRight}>
+            <TouchableOpacity 
+              onPress={() => router.push('/notifications')}
+              style={styles.notificationButton}
+            >
+              <Ionicons name="notifications" size={24} color="#00f0ff" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={startNewChat}>
+              <MaterialCommunityIcons name="plus-circle" size={24} color="#00f0ff" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Chat Messages */}
@@ -441,13 +522,13 @@ const HexHustlerChatBot = () => {
           </View>
         </KeyboardAvoidingView>
 
-        {/* Upgrade Modal with Payment Options */}
+        {/* Upgrade Modal */}
         <Modal visible={showUpgradeModal} transparent animationType="slide">
           <View style={styles.modalOverlay}>
             <View style={styles.upgradeModal}>
               <Text style={styles.modalTitle}>🚀 Upgrade to Premium</Text>
               <Text style={styles.modalText}>
-                You've used your 5 free questions! Choose your payment method:
+                You have used your 5 free questions! Choose your payment method:
               </Text>
               
               <View style={styles.premiumFeatures}>
@@ -457,21 +538,26 @@ const HexHustlerChatBot = () => {
                 <Text style={styles.featureText}>💰 Exclusive strategies</Text>
               </View>
               
-              <Text style={styles.priceText}>$19.99/R350 monthly</Text>
+              <Text style={styles.priceText}>R350 / $19.99 monthly</Text>
               
-              <View style={styles.paymentButtons}>
-                <TouchableOpacity 
-                  style={styles.stripeButton}
-                  onPress={() => handlePayment('stripe')}
-                >
-                  <MaterialCommunityIcons name="credit-card" size={20} color="#fff" />
-                  <Text style={styles.paymentButtonText}>Pay with Stripe</Text>
+              <View style={styles.paymentSection}>
+                <View style={styles.bankingSection}>
+            <Text style={styles.bankingSectionTitle}>EFT Banking Details</Text>
+            <Text style={styles.bankingDetails}>• Bank: Nedbank</Text>
+            <Text style={styles.bankingDetails}>• Account Number: 1211596699</Text>
+            <Text style={styles.bankingDetails}>• Account Type: Current Account</Text>
+            <Text style={styles.bankingDetails}>• Reference: HEX HUSTLERS (Pty) Ltd</Text>
+            <Text style={styles.bankingDetails}>• Swift Code: NEDSZAJJ</Text>
+                </View>
+
+                <TouchableOpacity style={styles.eftButton} onPress={handleEmailProof}>
+                  <MaterialCommunityIcons name="email" size={20} color="#fff" />
+                  <Text style={styles.paymentButtonText}>Send EFT Proof</Text>
                 </TouchableOpacity>
+
+                <Text style={styles.orText}>OR</Text>
                 
-                <TouchableOpacity 
-                  style={styles.paypalButton}
-                  onPress={() => handlePayment('paypal')}
-                >
+                <TouchableOpacity style={styles.paypalButton} onPress={handlePayPalPayment}>
                   <Ionicons name="logo-paypal" size={20} color="#fff" />
                   <Text style={styles.paymentButtonText}>Pay with PayPal</Text>
                 </TouchableOpacity>
@@ -487,7 +573,7 @@ const HexHustlerChatBot = () => {
           </View>
         </Modal>
 
-        {/* Chat History Modal with Delete Options */}
+        {/* Chat History Modal */}
         <Modal visible={showChatHistory} transparent animationType="slide">
           <View style={styles.modalOverlay}>
             <View style={styles.historyModal}>
@@ -551,6 +637,8 @@ const styles = StyleSheet.create({
   headerCenter: { alignItems: 'center' },
   headerTitle: { fontSize: 18, fontWeight: 'bold', color: '#ffffff' },
   headerSubtitle: { fontSize: 12, color: '#00f0ff', marginTop: 2 },
+  headerRight: { flexDirection: 'row', alignItems: 'center' },
+  notificationButton: { marginRight: 15 },
   chatContainer: { flex: 1 },
   messagesContainer: { flex: 1, paddingHorizontal: 15 },
   messagesContent: { paddingTop: 15, paddingBottom: 20 },
@@ -579,13 +667,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#00f0ff',
     borderRadius: 18,
-    borderBottomLeftRadius: 1,
+    borderBottomLeftRadius: 5,
     paddingHorizontal: 15,
     paddingVertical: 15,
   },
   typingDots: { justifyContent: 'center', alignItems: 'center' },
   typingText: { color: '#00f0ff', fontSize: 14, fontStyle: 'italic' },
-  
   // Updated Actions Container - minimal space above input
   actionsContainer: {
     paddingHorizontal: 10,
@@ -655,7 +742,7 @@ const styles = StyleSheet.create({
     borderColor: '#00f0ff',
     borderRadius: 20,
     margin: 20,
-    padding: 25,
+    padding: 10,
     alignItems: 'center',
     maxWidth: width * 0.9,
   },
@@ -664,16 +751,20 @@ const styles = StyleSheet.create({
   premiumFeatures: { width: '100%', marginBottom: 20 },
   featureText: { fontSize: 16, color: '#ffffff', marginBottom: 8, paddingLeft: 10 },
   priceText: { fontSize: 22, fontWeight: 'bold', color: '#00f0ff', marginBottom: 25 },
-  paymentButtons: { width: '100%', marginBottom: 20 },
-  stripeButton: {
+  paymentSection: { width: '100%', marginBottom: 20 },
+  bankingSection: { backgroundColor: 'rgba(0,240,255,0.1)', borderRadius: 10, padding: 15, marginBottom: 15 },
+  bankingSectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#00f0ff', marginBottom: 10 },
+  bankingDetails: { fontSize: 14, color: '#ffffff', marginBottom: 5 },
+  eftButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#6772e5',
+    backgroundColor: '#28a745',
     borderRadius: 25,
     paddingVertical: 12,
-    marginBottom: 12,
+    marginBottom: 10,
   },
+  orText: { fontSize: 16, color: '#ffffff', textAlign: 'center', marginVertical: 10 },
   paypalButton: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -1,3 +1,4 @@
+import { useNotifications } from '@/contexts/NotificationContext';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import * as MailComposer from 'expo-mail-composer';
@@ -30,6 +31,8 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
@@ -37,6 +40,7 @@ const BlueprintScreen = () => {
   const router = useRouter();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scrollViewRef = useRef<ScrollView>(null);
+  const { addNotification } = useNotifications();
   
   // Form states
   const [name, setName] = useState('');
@@ -56,7 +60,7 @@ const BlueprintScreen = () => {
     }).start();
 
     registerForPushNotificationsAsync();
-  }, []);
+  }, [fadeAnim]);
 
   const registerForPushNotificationsAsync = async () => {
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
@@ -80,7 +84,10 @@ const BlueprintScreen = () => {
         body,
         sound: 'default',
       },
-      trigger: { seconds: 1 },
+      trigger: { 
+        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+        seconds: 1 
+      },
     });
   };
 
@@ -110,12 +117,13 @@ const BlueprintScreen = () => {
         Alert.alert('Success', 'Payment proof uploaded successfully!');
       }
     } catch (error) {
+      console.error('Document upload error:', error);
       Alert.alert('Error', 'Failed to upload document');
     }
   };
 
-  const sendEmailWithAttachment = async () => {
-    const emailBody = `NEW RICH BLUEPRINT PURCHASE REQUEST
+  const sendEmailWithAttachment = async (blueprintType: 'Rich' | 'Wealthy') => {
+    const emailBody = `NEW ${blueprintType.toUpperCase()} BLUEPRINT PURCHASE REQUEST
 
 Customer Details:
 ━━━━━━━━━━━━━━━━━━━━
@@ -123,9 +131,12 @@ Customer Details:
 📧 Email: ${email}
 📱 Phone: ${phone}
 📄 Document: ${uploadedDoc?.name || 'Attached EFT Proof'}
+🎯 Blueprint Type: ${blueprintType} Version
 
 ━━━━━━━━━━━━━━━━━━━━
-REQUEST: Please send "Code Your Success: Blueprint" to this customer after verifying payment.
+REQUEST: Please send "Code Your Success: ${blueprintType} Blueprint" to this customer after verifying payment.
+
+${blueprintType === 'Wealthy' ? 'NOTE: This is a monthly subscription. Set up recurring consultation scheduling.' : ''}
 
 This is an automated email from the Hex Hustlers app.`;
 
@@ -138,19 +149,19 @@ This is an automated email from the Hex Hustlers app.`;
 
       const result = await MailComposer.composeAsync({
         recipients: ['cashexerbusiness@gmail.com'],
-        subject: '🚀 New Rich Blueprint Purchase - Action Required',
+        subject: `🚀 New ${blueprintType} Blueprint Purchase - Action Required`,
         body: emailBody,
         attachments: uploadedDoc ? [uploadedDoc.uri] : undefined,
       });
 
       return result.status === MailComposer.MailComposerStatus.SENT;
     } catch (error) {
-      console.log('Email Error:', error);
+      console.error('Email sending error:', error);
       return false;
     }
   };
 
-  const handleRichSubmit = async () => {
+  const handleBlueprintSubmit = async (blueprintType: 'Rich' | 'Wealthy') => {
     if (!name || !email || !phone) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
@@ -163,16 +174,32 @@ This is an automated email from the Hex Hustlers app.`;
     setIsSubmitting(true);
 
     try {
-      const emailSent = await sendEmailWithAttachment();
+      const emailSent = await sendEmailWithAttachment(blueprintType);
       
+      // Use emailSent to avoid unused variable warning
+      if (emailSent) {
+        console.log('Email sent successfully');
+      } else {
+        console.log('Email failed to send, but continuing with notification');
+      }
+      
+      // Add notification regardless of email success/failure - only once
+      addNotification({
+        title: `🎉 ${blueprintType} Blueprint Purchase Submitted!`,
+        message: `Your ${blueprintType} Blueprint purchase request has been submitted successfully. You will receive your blueprint within 24 hours after payment verification.`,
+        type: 'success',
+        actionType: 'blueprint_purchase',
+      });
+
+      // Show push notification
       await showPushNotification(
         '🎉 Application Submitted!',
-        'Your Rich Blueprint purchase request has been submitted. You will receive your blueprint within 24 hours.'
+        `Your ${blueprintType} Blueprint purchase request has been submitted. You will receive your blueprint within 24 hours.`
       );
 
       Alert.alert(
         'Success!', 
-        'Your application has been submitted successfully! We will verify your payment and send you the blueprint within 24 hours.',
+        `Your ${blueprintType} Blueprint application has been submitted successfully! We will verify your payment and send you the blueprint within 24 hours.`,
         [
           {
             text: 'View Notifications',
@@ -185,31 +212,36 @@ This is an automated email from the Hex Hustlers app.`;
         ]
       );
 
+      // Clear form
       setName('');
       setEmail('');
       setPhone('');
       setUploadedDoc(null);
 
     } catch (error) {
-      console.log('Submit Error:', error);
-      Alert.alert('Success', 'Your application has been submitted! We will verify your payment and send you the blueprint within 24 hours.');
+      console.error('Blueprint submission error:', error);
+      // Only show error notification if something goes wrong with the notification system itself
+      Alert.alert('Error', 'Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleStripePayment = () => {
-    Linking.openURL('https://buy.stripe.com/test_aFaeVfew37Fd1va1yR4sE00');
-  };
+  const handlePayPalPayment = (blueprintType: 'Rich' | 'Wealthy') => {
+    addNotification({
+      title: `💳 ${blueprintType} Blueprint Payment Started`,
+      message: `You are being redirected to complete your ${blueprintType} Blueprint payment via PayPal. You will receive your blueprint after payment confirmation.`,
+      type: 'info',
+      actionType: 'blueprint_purchase',
+    });
 
-  const handlePayPalPayment = () => {
     Linking.openURL('https://paypal.me/CasHexer');
   };
 
   const blueprintOptions = [
     {
-      title: 'Code Your Success: Rich Version - Complete Developer\'s Blueprint',
-      price: 'R525 / $29',
+      title: 'Code Your Success: Rich Version - Complete Developer Blueprint',
+      price: 'R500 / $29',
       features: [
         'Complete development guide with code samples',
         'Project planning worksheets',
@@ -224,16 +256,16 @@ This is an automated email from the Hex Hustlers app.`;
     },
     {
       title: 'Code Your Success: Wealthy Version - Premium Membership',
-      price: 'R900 / $49 monthly',
+      price: 'R2000 / $129 per consultation',
       features: [
         'Everything in Rich Version',
-        '30-minute monthly consultation call',
+        '1 Hour per consultation call',
         'Additional project templates',
         'Priority email support',
-        'Monthly updated content',
+        'Newly updated content',
         'Exclusive developer resources'
       ],
-      description: 'Blueprint sent via email after Stripe/PayPal subscription. Contact details for monthly consultation calls will be provided.',
+      description: 'Blueprint sent via email after EFT/PayPal payment. Contact details for consultation calls will be provided.',
       buttonText: 'GET WEALTHY VERSION',
       action: () => navigateToPage(2)
     }
@@ -279,7 +311,7 @@ This is an automated email from the Hex Hustlers app.`;
   const renderPricingPage = () => (
     <View style={styles.pageContainer}>
       <View style={styles.titleContainer}>
-        <Text style={styles.pageTitle}>Developer's Blueprint</Text>
+        <Text style={styles.pageTitle}>Developer Blueprints</Text>
         <View style={styles.titleUnderline} />
         <Text style={styles.pageSubtitle}>Choose your success path</Text>
       </View>
@@ -305,7 +337,7 @@ This is an automated email from the Hex Hustlers app.`;
             <Text style={styles.blueprintPrice}>{option.price}</Text>
             
             {option.features.map((feature, fIndex) => (
-              <Text key={fIndex} style={styles.featureText}>• {feature}</Text>
+              <Text key={fIndex} style={styles.featureText}>✓ {feature}</Text>
             ))}
             
             <Text style={styles.descriptionText}>{option.description}</Text>
@@ -330,11 +362,13 @@ This is an automated email from the Hex Hustlers app.`;
     </View>
   );
 
-  const renderRichPage = () => (
+  const renderBlueprintForm = (blueprintType: 'Rich' | 'Wealthy') => (
     <View style={styles.pageContainer}>
       <View style={styles.titleContainer}>
-        <Text style={styles.pageTitle}>RICH BLUEPRINT</Text>
-        <Text style={styles.pageSubtitle}>Complete Developer's Guide - R525 / $29</Text>
+        <Text style={styles.pageTitle}>{blueprintType.toUpperCase()} BLUEPRINT</Text>
+        <Text style={styles.pageSubtitle}>
+          {blueprintType === 'Rich' ? 'Complete Developer\'s Guide - R500 / $29' : 'Premium Membership - R2000 / $129 per consultation'}
+        </Text>
         <View style={styles.titleUnderline} />
       </View>
       
@@ -391,7 +425,7 @@ This is an automated email from the Hex Hustlers app.`;
           
           <TouchableOpacity 
             style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
-            onPress={handleRichSubmit}
+            onPress={() => handleBlueprintSubmit(blueprintType)}
             disabled={isSubmitting}
           >
             <Text style={styles.submitText}>
@@ -401,86 +435,26 @@ This is an automated email from the Hex Hustlers app.`;
 
           <TouchableOpacity 
             style={styles.paymentButton}
-            onPress={handlePayPalPayment}
+            onPress={() => handlePayPalPayment(blueprintType)}
           >
             <Ionicons name="logo-paypal" size={24} color="#ffffff" />
             <Text style={styles.paymentButtonText}>Pay with PayPal</Text>
           </TouchableOpacity>
-        </View>
-        
-        <TouchableOpacity 
-          style={styles.backToPlansButton}
-          onPress={() => navigateToPage(0)}
-        >
-          <Text style={styles.backToPlansText}>BACK TO PLANS</Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </View>
-  );
 
-  const renderWealthyPage = () => (
-    <View style={styles.pageContainer}>
-      <View style={styles.titleContainer}>
-        <Text style={styles.pageTitle}>WEALTHY BLUEPRINT</Text>
-        <Text style={styles.pageSubtitle}>Premium Membership - R900 / $49 monthly</Text>
-        <View style={styles.titleUnderline} />
-      </View>
-      
-      <ScrollView contentContainerStyle={styles.formScrollContainer}>
-        <View style={styles.formCard}>
-          <TextInput
-            style={styles.formInput}
-            placeholder="Full Name"
-            placeholderTextColor="#00f0ff"
-            value={name}
-            onChangeText={setName}
-          />
-          <TextInput
-            style={styles.formInput}
-            placeholder="Email Address"
-            placeholderTextColor="#00f0ff"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-          />
-          <TextInput
-            style={styles.formInput}
-            placeholder="Phone Number"
-            placeholderTextColor="#00f0ff"
-            value={phone}
-            onChangeText={setPhone}
-            keyboardType="phone-pad"
-          />
-          
-          <Text style={styles.paymentTitle}>Choose Payment Method</Text>
-          
-          <TouchableOpacity 
-            style={styles.paymentButton}
-            onPress={handleStripePayment}
-          >
-            <Ionicons name="card-outline" size={24} color="#ffffff" />
-            <Text style={styles.paymentButtonText}>Subscribe with Stripe</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.paymentButton}
-            onPress={handlePayPalPayment}
-          >
-            <Ionicons name="logo-paypal" size={24} color="#ffffff" />
-            <Text style={styles.paymentButtonText}>Subscribe with PayPal</Text>
-          </TouchableOpacity>
-
-          <Text style={styles.consultationText}>
-            Monthly consultation calls available - submit your preferred date each month via contact form.
-          </Text>
-
-          <TouchableOpacity 
-            style={styles.contactButton}
-            onPress={() => router.push('/contact')}
-          >
-            <Ionicons name="mail-outline" size={20} color="#ffffff" />
-            <Text style={styles.contactButtonText}>Contact for Consultation Schedule</Text>
-          </TouchableOpacity>
+          {blueprintType === 'Wealthy' && (
+            <>
+              <Text style={styles.consultationText}>
+                Consultation calls available - submit your preferred date via email.
+              </Text>
+              <TouchableOpacity 
+                style={styles.contactButton}
+                onPress={() => router.push('/contact')}
+              >
+                <Ionicons name="mail-outline" size={20} color="#ffffff" />
+                <Text style={styles.contactButtonText}>Contact for Consultation Schedule</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
         
         <TouchableOpacity 
@@ -516,11 +490,11 @@ This is an automated email from the Hex Hustlers app.`;
           </View>
           
           <View style={[styles.page, { width }]}>
-            {renderRichPage()}
+            {renderBlueprintForm('Rich')}
           </View>
           
           <View style={[styles.page, { width }]}>
-            {renderWealthyPage()}
+            {renderBlueprintForm('Wealthy')}
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -799,14 +773,6 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: 'bold',
     fontSize: 16,
-  },
-  paymentTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#00f0ff',
-    marginBottom: 20,
-    marginTop: 10,
-    textAlign: 'center',
   },
   paymentButton: {
     backgroundColor: 'rgba(0,240,255,0.2)',

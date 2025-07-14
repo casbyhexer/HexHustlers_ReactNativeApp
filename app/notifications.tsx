@@ -1,6 +1,7 @@
+import { useNotifications } from '@/contexts/NotificationContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React from 'react';
 import {
   ImageBackground,
   SafeAreaView,
@@ -11,53 +12,15 @@ import {
   View
 } from 'react-native';
 
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  timestamp: Date;
-  read: boolean;
-  type: 'success' | 'info' | 'warning';
-}
-
 const NotificationsScreen = () => {
   const router = useRouter();
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: '1',
-      title: '🎉 Application Submitted!',
-      message: 'Your Rich Blueprint purchase request has been submitted. You will receive your blueprint within 24 hours.',
-      timestamp: new Date(),
-      read: false,
-      type: 'success',
-    },
-    {
-      id: '2',
-      title: '📧 Email Sent Successfully',
-      message: 'Your purchase details have been sent to our team for processing.',
-      timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
-      read: false,
-      type: 'info',
-    },
-  ]);
-
-  const markAsRead = (id: string) => {
-    setNotifications(prev => 
-      prev.map(notif => 
-        notif.id === id ? { ...notif, read: true } : notif
-      )
-    );
-  };
-
-  const markAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(notif => ({ ...notif, read: true }))
-    );
-  };
-
-  const clearNotifications = () => {
-    setNotifications([]);
-  };
+  const { 
+    notifications, 
+    markAsRead, 
+    markAllAsRead, 
+    clearNotifications, 
+    unreadCount 
+  } = useNotifications();
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -94,7 +57,24 @@ const NotificationsScreen = () => {
     return `${diffDays}d ago`;
   };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const handleNotificationPress = (notification: any) => {
+    markAsRead(notification.id);
+    
+    // Navigate based on notification action type
+    switch (notification.actionType) {
+      case 'service_contact':
+        router.push('/contact');
+        break;
+      case 'blueprint_purchase':
+        router.push('/contact'); // For support if needed
+        break;
+      case 'premium_activated':
+        router.push('/hexchatbot');
+        break;
+      default:
+        break;
+    }
+  };
 
   const renderHeader = () => (
     <View style={styles.header}>
@@ -102,9 +82,11 @@ const NotificationsScreen = () => {
         <Ionicons name="arrow-back" size={24} color="#00f0ff" />
       </TouchableOpacity>
       <Text style={styles.headerTitle}>Notifications</Text>
-      <TouchableOpacity onPress={markAllAsRead}>
-        <Text style={styles.markAllText}>Mark All Read</Text>
-      </TouchableOpacity>
+      {notifications.length > 0 && (
+        <TouchableOpacity onPress={markAllAsRead}>
+          <Text style={styles.markAllText}>Mark All Read</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 
@@ -117,23 +99,32 @@ const NotificationsScreen = () => {
       <SafeAreaView style={styles.safeArea}>
         {renderHeader()}
         
-        <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{notifications.length}</Text>
-            <Text style={styles.statLabel}>Total</Text>
+        {notifications.length > 0 && (
+          <View style={styles.statsContainer}>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>{notifications.length}</Text>
+              <Text style={styles.statLabel}>Total</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>{unreadCount}</Text>
+              <Text style={styles.statLabel}>Unread</Text>
+            </View>
           </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{unreadCount}</Text>
-            <Text style={styles.statLabel}>Unread</Text>
-          </View>
-        </View>
+        )}
 
         <ScrollView style={styles.notificationsList} showsVerticalScrollIndicator={false}>
           {notifications.length === 0 ? (
             <View style={styles.emptyState}>
               <Ionicons name="notifications-off-outline" size={64} color="rgba(0,240,255,0.3)" />
               <Text style={styles.emptyTitle}>No Notifications</Text>
-              <Text style={styles.emptySubtitle}>You're all caught up!</Text>
+              <Text style={styles.emptySubtitle}>
+                You will receive notifications when you:
+              </Text>
+              <View style={styles.emptyList}>
+                <Text style={styles.emptyListItem}>• Contact us for services</Text>
+                <Text style={styles.emptyListItem}>• Purchase blueprints</Text>
+                <Text style={styles.emptyListItem}>• Activate premium features</Text>
+              </View>
             </View>
           ) : (
             notifications.map((notification) => (
@@ -143,7 +134,7 @@ const NotificationsScreen = () => {
                   styles.notificationCard,
                   !notification.read && styles.unreadCard
                 ]}
-                onPress={() => markAsRead(notification.id)}
+                onPress={() => handleNotificationPress(notification)}
               >
                 <View style={styles.notificationHeader}>
                   <View style={styles.iconContainer}>
@@ -254,6 +245,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 60,
+    paddingHorizontal: 40,
   },
   emptyTitle: {
     fontSize: 20,
@@ -265,6 +257,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: 'rgba(255,255,255,0.7)',
     marginTop: 10,
+    textAlign: 'center',
+  },
+  emptyList: {
+    marginTop: 20,
+    alignItems: 'flex-start',
+  },
+  emptyListItem: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.5)',
+    marginVertical: 3,
   },
   notificationCard: {
     backgroundColor: 'rgba(0,0,0,0.6)',

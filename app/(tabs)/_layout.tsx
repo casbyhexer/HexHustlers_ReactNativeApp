@@ -5,7 +5,7 @@ import { Platform } from 'react-native';
 import { HapticTab } from '@/components/HapticTab';
 import CyberpunkTabBar from '@/components/ui/CyberpunkTabBar';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import { useColorScheme } from '@/hooks/useColorScheme';
+//import { useColorScheme } from '@/hooks/useColorScheme';
 
 // Cyberpunk color scheme matching your landing page
 const CyberpunkColors = {
@@ -18,7 +18,7 @@ const CyberpunkColors = {
 };
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  //const colorScheme = useColorScheme();
 
   return (
     <Tabs

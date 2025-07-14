@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons, FontAwesome5, AntDesign } from '@expo/vector-icons';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 const AboutScreen = () => {
   const router = useRouter();
@@ -77,7 +77,7 @@ const AboutScreen = () => {
     waveAnimation();
 
     return () => clearInterval(interval);
-  }, []);
+  }, [fadeAnim, profileImages.length, waveAnim]);
 
   const waveRotation = waveAnim.interpolate({
     inputRange: [0, 1],
@@ -147,7 +147,7 @@ const AboutScreen = () => {
                   <Ionicons name="hand-right" size={24} color="#00f0ff" />
                 </Animated.View>
               </View>
-              <Text style={styles.name}>I'm Luwano Casby Mhango</Text>
+              <Text style={styles.name}>I&apos;m Luwano Casby Mhango</Text>
               <Text style={styles.title}>Full Stack Developer & Founder, Hex Hustlers</Text>
               
               <Text style={styles.bio}>
@@ -236,7 +236,7 @@ const AboutScreen = () => {
             </View>
             <View style={styles.sectionContent}>
               <Text style={styles.visionText}>
-                Hex Hustlers is not just a company – it's a vision, a movement, and a mindset. It represents the pursuit of excellence, the drive to innovate, and the relentless passion to chase greatness in all that we do.
+                Hex Hustlers is not just a company &ndash; it&apos;s a vision, a movement, and a mindset. It represents the pursuit of excellence, the drive to innovate, and the relentless passion to chase greatness in all that we do.
               </Text>
               <Text style={styles.bulletPoint}>• Enterprise-grade web and mobile applications</Text>
               <Text style={styles.bulletPoint}>• Interactive UI/UX design and prototyping</Text>
@@ -247,10 +247,10 @@ const AboutScreen = () => {
           
           <View style={styles.sectionContainer}>
             <Text style={styles.visionText}>
-              I'm currently expanding my expertise in cybersecurity and blockchain technology to integrate cutting-edge security protocols and decentralized solutions into our client offerings. My focus on AI integration allows us to create intelligent, automated systems that provide measurable business advantages.
+              I&apos;m currently expanding my expertise in cybersecurity and blockchain technology to integrate cutting-edge security protocols and decentralized solutions into our client offerings. My focus on AI integration allows us to create intelligent, automated systems that provide measurable business advantages.
             </Text>
             <Text style={styles.visionText}>
-              My commitment is to foster collaborative partnerships where clients can "hustle" alongside us, participating in the development process while building solutions that generate measurable traffic, engagement, and ultimately, increased revenue.
+              My commitment is to foster collaborative partnerships where clients can &ldquo;hustle&rdquo; alongside us, participating in the development process while building solutions that generate measurable traffic, engagement, and ultimately, increased revenue.
             </Text>
           </View>
           

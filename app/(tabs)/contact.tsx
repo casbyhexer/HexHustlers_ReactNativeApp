@@ -1,9 +1,9 @@
+import { useNotifications } from '@/contexts/NotificationContext';
 import { FontAwesome5, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
 import {
   Animated,
-  Dimensions,
   Image,
   ImageBackground,
   Linking,
@@ -13,8 +13,6 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-
-const { width, height } = Dimensions.get('window');
 
 // Contact information type
 type ContactInfo = {
@@ -28,6 +26,9 @@ const ContactScreen = () => {
   const router = useRouter();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
+  
+  // Get the notification context
+  const { addServiceContactNotification } = useNotifications() as any;
   
   useEffect(() => {
     // Initial fade-in and scale animation
@@ -44,27 +45,46 @@ const ContactScreen = () => {
         useNativeDriver: true,
       })
     ]).start();
-  }, []);
+  }, [fadeAnim, scaleAnim]); // Added missing dependencies
 
-  // Contact information data
+  // Enhanced contact actions with notification trigger
+  const handleEmailAction = () => {
+    Linking.openURL('mailto:cashexerbusiness@gmail.com');
+    // Trigger notification after email action
+    addServiceContactNotification();
+  };
+
+  const handlePhoneAction = () => {
+    Linking.openURL('tel:+27714008892');
+    // Trigger notification after phone action
+    addServiceContactNotification();
+  };
+
+  const handleLinkedInAction = () => {
+    Linking.openURL('https://www.linkedin.com/company/hex-hustlers/?viewAsMember=true');
+    // Optional: You might not want to trigger notification for LinkedIn visits
+    // as it's more of a browse action rather than a direct service request
+  };
+
+  // Contact information data with updated actions
   const contactInfo: ContactInfo[] = [
     {
       type: 'Email',
       value: 'cashexerbusiness@gmail.com',
       icon: <Ionicons name="mail" size={30} color="#00f0ff" />,
-      action: () => Linking.openURL('mailto:cashexerbusiness@gmail.com')
+      action: handleEmailAction
     },
     {
       type: 'LinkedIn',
       value: 'HEX HUSTLERS [PTY] LTD',
       icon: <FontAwesome5 name="linkedin" size={30} color="#00f0ff" />,
-      action: () => Linking.openURL('https://www.linkedin.com/company/hex-hustlers/?viewAsMember=true')
+      action: handleLinkedInAction
     },
     {
       type: 'Phone',
       value: '+27 71 400 8892',
       icon: <Ionicons name="call" size={30} color="#00f0ff" />,
-      action: () => Linking.openURL('tel:+27714008892')
+      action: handlePhoneAction
     }
   ];
 
@@ -121,9 +141,9 @@ const ContactScreen = () => {
             style={styles.logo}
             resizeMode="contain"
           />
-      <TouchableOpacity onPress={() => router.push('/notifications')}>
-        <Ionicons name="notifications" size={28} color="#00f0ff" />
-      </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/notifications')}>
+            <Ionicons name="notifications" size={28} color="#00f0ff" />
+          </TouchableOpacity>
         </View>
         
         <View style={styles.contentContainer}>
@@ -136,7 +156,7 @@ const ContactScreen = () => {
               }
             ]}
           >
-            <Text style={styles.contactTitle}>Contact Us</Text>
+            <Text style={styles.contactTitle}>Contact HEX</Text>
             <View style={styles.titleUnderline} />
             <Text style={styles.contactSubtitle}>Get in touch with our tech wizards</Text>
           </Animated.View>
@@ -157,12 +177,18 @@ const ContactScreen = () => {
               }
             ]}
           >
-            <Text style={styles.infoText}>
-              We typically respond within 24-48 hours.
-            </Text>
-            <Text style={styles.infoText}>
-              Our office hours are Monday-Friday, 09:00-17:00 SAST.
-            </Text>
+            <View style={styles.infoCard}>
+              <Ionicons name="time-outline" size={20} color="#00f0ff" />
+              <Text style={styles.infoText}>
+                We typically respond within 24-48 hours.
+              </Text>
+            </View>
+            <View style={styles.infoCard}>
+              <Ionicons name="business-outline" size={20} color="#00f0ff" />
+              <Text style={styles.infoText}>
+                Our office hours are Monday-Friday, 09:00-17:00 SAST.
+              </Text>
+            </View>
           </Animated.View>
           
           <TouchableOpacity 
@@ -180,37 +206,26 @@ const ContactScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-      flex: 1,
-      width: '100%',
-      height: '100%',
-    },
-    safeArea: {
-      flex: 1,
-    },
-    header: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingHorizontal: 15,
-      paddingVertical: 10,
-      marginBottom: 5,
-    },
-    logo: {
-      width: 50,
-      height: 50,
-      borderRadius: 25,
-    },
-    menuButton: {
-      width: 30,
-      height: 25,
-      justifyContent: 'space-between',
-    },
-    menuLine: {
-      width: '100%',
-      height: 3,
-      backgroundColor: '#00f0ff',
-      borderRadius: 5,
-    },
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  safeArea: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    marginBottom: 5,
+  },
+  logo: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+  },
   contentContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -310,11 +325,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(0,240,255,0.2)',
   },
+  infoCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   infoText: {
     color: '#e0e0e0',
     fontSize: 14,
-    marginBottom: 8,
-    textAlign: 'center',
+    marginLeft: 10,
+    flex: 1,
   },
   backButton: {
     backgroundColor: 'rgba(0,240,255,0.2)',

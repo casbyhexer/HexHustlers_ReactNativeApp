@@ -2,18 +2,15 @@ import { FontAwesome5, Ionicons, MaterialCommunityIcons } from '@expo/vector-ico
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
 import {
-    Animated,
-    Dimensions,
-    Image,
-    ImageBackground,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Animated,
+  Image,
+  ImageBackground,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
-
-const { width, height } = Dimensions.get('window');
 
 // Service type definition
 type Service = {
@@ -34,7 +31,7 @@ const ServicesScreen = () => {
       duration: 800,
       useNativeDriver: true,
     }).start();
-  }, []);
+  }, [fadeAnim]);
 
   // Core Services Data
   const coreServices: Service[] = [
@@ -158,7 +155,7 @@ const ServicesScreen = () => {
           scrollEventThrottle={16}
         >
           <View style={styles.titleContainer}>
-            <Text style={styles.servicesTitle}>Our Services</Text>
+            <Text style={styles.servicesTitle}>Request Services</Text>
             <View style={styles.titleUnderline} />
             <Text style={styles.servicesSubtitle}>Tap to connect, built to advance</Text>
           </View>
@@ -204,10 +201,10 @@ const ServicesScreen = () => {
           <View style={styles.specialProductContainer}>
             <View style={styles.productHeader}>
               <MaterialCommunityIcons name="book-open-page-variant" size={24} color="#00f0ff" />
-              <Text style={styles.productTitle}>Developer's Blueprint</Text>
+              <Text style={styles.productTitle}>Developer&apos;s Blueprint</Text>
             </View>
             <Text style={styles.productDescription}>
-              "Code Your Success: Developer's Blueprint" - A comprehensive digital guide drawing from my 4+ years of professional experience across multiple technologies.
+              &ldquo;Code Your Success: Developer&apos;s Blueprint&rdquo; - A comprehensive digital guide drawing from my 4+ years of professional experience across multiple technologies.
             </Text>
             <TouchableOpacity 
               style={styles.learnMoreButton}
