@@ -1,7 +1,20 @@
 import { useNotifications } from '@/contexts/NotificationContext';
+// Platform is already imported below with other react-native imports
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+// Web icon imports (only used on web)
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
+import { IoIosNotifications, IoIosSend } from 'react-icons/io';
+import { IoLogoPaypal } from 'react-icons/io5';
+import {
+  MdAddCircleOutline,
+  MdOutlineClose,
+  MdOutlineDelete,
+  MdOutlineDeleteSweep,
+  MdOutlineEmail,
+  MdOutlineHistory,
+  MdOutlineSmartToy
+} from 'react-icons/md';
 import {
   Alert,
   Animated,
@@ -41,16 +54,17 @@ interface HustlerKnowledge {
   motivation: string;
 }
 
+
 const HexHustlerChatBot = () => {
   const router = useRouter();
-  
-  // Updated destructuring to include all notification methods
-  const { 
-    addPremiumActivatedNotification, 
-    addPremiumPendingNotification, 
-    addPaymentReceivedNotification 
+  // Destructure notification context methods
+  const {
+    addPremiumActivatedNotification,
+    addPremiumPendingNotification,
+    addPaymentReceivedNotification
   } = useNotifications();
 
+  // State
   const [currentSession, setCurrentSession] = useState<ChatSession>({
     id: '1',
     title: 'New Chat',
@@ -62,8 +76,6 @@ const HexHustlerChatBot = () => {
     }],
     createdAt: new Date(),
   });
-
-  // Rest of your component state and logic remains the same...
   const [savedChats, setSavedChats] = useState<ChatSession[]>([]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -393,7 +405,11 @@ const handleEmailProof = async () => {
     ]}>
       {!message.isUser && (
         <View style={styles.botIcon}>
-          <MaterialCommunityIcons name="robot" size={20} color="#00f0ff" />
+          {Platform.OS === 'web' ? (
+            <MdOutlineSmartToy color="#00f0ff" size={20} />
+          ) : (
+            <MaterialCommunityIcons name="robot" size={20} color="#00f0ff" />
+          )}
         </View>
       )}
       <View style={[
@@ -448,7 +464,11 @@ const renderQuickActions = () => {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => setShowChatHistory(true)}>
-            <MaterialCommunityIcons name="history" size={24} color="#00f0ff" />
+            {Platform.OS === 'web' ? (
+              <MdOutlineHistory color="#00f0ff" size={24} />
+            ) : (
+              <MaterialCommunityIcons name="history" size={24} color="#00f0ff" />
+            )}
           </TouchableOpacity>
           
           <View style={styles.headerCenter}>
@@ -463,10 +483,18 @@ const renderQuickActions = () => {
               onPress={() => router.push('/notifications')}
               style={styles.notificationButton}
             >
-              <Ionicons name="notifications" size={24} color="#00f0ff" />
+              {Platform.OS === 'web' ? (
+                <IoIosNotifications color="#00f0ff" size={24} />
+              ) : (
+                <Ionicons name="notifications" size={24} color="#00f0ff" />
+              )}
             </TouchableOpacity>
             <TouchableOpacity onPress={startNewChat}>
-              <MaterialCommunityIcons name="plus-circle" size={24} color="#00f0ff" />
+              {Platform.OS === 'web' ? (
+                <MdAddCircleOutline color="#00f0ff" size={24} />
+              ) : (
+                <MaterialCommunityIcons name="plus-circle" size={24} color="#00f0ff" />
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -487,7 +515,11 @@ const renderQuickActions = () => {
             {isTyping && (
               <View style={styles.typingContainer}>
                 <View style={styles.botIcon}>
-                  <MaterialCommunityIcons name="robot" size={20} color="#00f0ff" />
+                  {Platform.OS === 'web' ? (
+                    <MdOutlineSmartToy color="#00f0ff" size={20} />
+                  ) : (
+                    <MaterialCommunityIcons name="robot" size={20} color="#00f0ff" />
+                  )}
                 </View>
                 <View style={styles.typingBubble}>
                   <Animated.View style={[styles.typingDots, { opacity: typingAnim }]}>
@@ -517,7 +549,11 @@ const renderQuickActions = () => {
               onPress={sendMessage}
               disabled={!inputText.trim()}
             >
-              <Ionicons name="send" size={20} color={inputText.trim() ? "#000" : "#666"} />
+              {Platform.OS === 'web' ? (
+                <IoIosSend color={inputText.trim() ? '#000' : '#666'} size={20} />
+              ) : (
+                <Ionicons name="send" size={20} color={inputText.trim() ? "#000" : "#666"} />
+              )}
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
@@ -551,14 +587,22 @@ const renderQuickActions = () => {
                 </View>
 
                 <TouchableOpacity style={styles.eftButton} onPress={handleEmailProof}>
-                  <MaterialCommunityIcons name="email" size={20} color="#fff" />
+                  {Platform.OS === 'web' ? (
+                    <MdOutlineEmail color="#fff" size={20} />
+                  ) : (
+                    <MaterialCommunityIcons name="email" size={20} color="#fff" />
+                  )}
                   <Text style={styles.paymentButtonText}>Send EFT Proof</Text>
                 </TouchableOpacity>
 
                 <Text style={styles.orText}>OR</Text>
                 
                 <TouchableOpacity style={styles.paypalButton} onPress={handlePayPalPayment}>
-                  <Ionicons name="logo-paypal" size={20} color="#fff" />
+                  {Platform.OS === 'web' ? (
+                    <IoLogoPaypal color="#fff" size={20} />
+                  ) : (
+                    <Ionicons name="logo-paypal" size={20} color="#fff" />
+                  )}
                   <Text style={styles.paymentButtonText}>Pay with PayPal</Text>
                 </TouchableOpacity>
               </View>
@@ -581,10 +625,18 @@ const renderQuickActions = () => {
                 <Text style={styles.historyTitle}>Chat History</Text>
                 <View style={styles.historyActions}>
                   <TouchableOpacity onPress={deleteChatHistory} style={styles.deleteAllButton}>
-                    <MaterialCommunityIcons name="delete-sweep" size={20} color="#ff4444" />
+                    {Platform.OS === 'web' ? (
+                      <MdOutlineDeleteSweep color="#ff4444" size={20} />
+                    ) : (
+                      <MaterialCommunityIcons name="delete-sweep" size={20} color="#ff4444" />
+                    )}
                   </TouchableOpacity>
                   <TouchableOpacity onPress={() => setShowChatHistory(false)}>
-                    <MaterialCommunityIcons name="close" size={24} color="#00f0ff" />
+                    {Platform.OS === 'web' ? (
+                      <MdOutlineClose color="#00f0ff" size={24} />
+                    ) : (
+                      <MaterialCommunityIcons name="close" size={24} color="#00f0ff" />
+                    )}
                   </TouchableOpacity>
                 </View>
               </View>
@@ -605,7 +657,11 @@ const renderQuickActions = () => {
                       style={styles.deleteButton}
                       onPress={() => deleteSingleChat(chat.id)}
                     >
-                      <MaterialCommunityIcons name="delete" size={18} color="#ff4444" />
+                      {Platform.OS === 'web' ? (
+                        <MdOutlineDelete color="#ff4444" size={18} />
+                      ) : (
+                        <MaterialCommunityIcons name="delete" size={18} color="#ff4444" />
+                      )}
                     </TouchableOpacity>
                   </View>
                 ))}

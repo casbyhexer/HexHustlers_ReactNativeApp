@@ -5,6 +5,7 @@ import {
   Dimensions,
   Image,
   ImageBackground,
+  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -12,7 +13,13 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import { Ionicons, MaterialCommunityIcons, FontAwesome5, AntDesign } from '@expo/vector-icons';
+// Native icon imports
+import { AntDesign as RNAntDesign, FontAwesome5 as RNFontAwesome5, Ionicons as RNIonicons, MaterialCommunityIcons as RNMaterialCommunityIcons } from '@expo/vector-icons';
+// Web icon imports
+import { FaBook, FaBrain, FaBriefcase, FaClipboardCheck, FaCode, FaDatabase, FaLightbulb, FaMap, FaReact, FaShieldAlt, FaTools } from 'react-icons/fa';
+import { IoHandRight, IoNotifications } from 'react-icons/io5';
+import { MdCloud } from 'react-icons/md';
+import { SiDotnet, SiKotlin, SiTypescript } from 'react-icons/si';
 
 const { width } = Dimensions.get('window');
 
@@ -86,7 +93,20 @@ const AboutScreen = () => {
 
   const TechStack = ({ icon, name, color = '#00f0ff' }: { icon: string, name: string, color?: string }) => (
     <View style={styles.techItem}>
-      <MaterialCommunityIcons name={icon as any} size={24} color={color} />
+      {Platform.OS === 'web' ? (
+        // Fallback to generic icons for Java and C# if not available
+        name === 'Java' ? <FaCode size={24} color={color} title="Java" /> :
+        name === 'C#' ? <FaCode size={24} color={color} title="C#" /> :
+        name === 'Kotlin' ? <SiKotlin size={24} color={color} title="Kotlin" /> :
+        name === 'TypeScript' ? <SiTypescript size={24} color={color} title="TypeScript" /> :
+        name === 'React Native' ? <FaReact size={24} color={color} title="React Native" /> :
+        name === '.NET' ? <SiDotnet size={24} color={color} title=".NET" /> :
+        name === 'SQL' ? <FaDatabase size={24} color={color} title="SQL" /> :
+        name === 'Cloud' ? <MdCloud size={24} color={color} title="Cloud" /> :
+        <FaCode size={24} color={color} title={name} />
+      ) : (
+        <RNMaterialCommunityIcons name={icon as any} size={24} color={color} />
+      )}
       <Text style={styles.techText}>{name}</Text>
     </View>
   );
@@ -119,7 +139,9 @@ const AboutScreen = () => {
             resizeMode="contain"
           />
       <TouchableOpacity onPress={() => router.push('/notifications')}>
-        <Ionicons name="notifications" size={28} color="#00f0ff" />
+        {Platform.OS === 'web'
+          ? <IoNotifications size={28} color="#00f0ff" />
+          : <RNIonicons name="notifications" size={28} color="#00f0ff" />}
       </TouchableOpacity>
         </View>
         
@@ -143,8 +165,10 @@ const AboutScreen = () => {
             <View style={styles.bioContent}>
               <View style={styles.nameContainer}>
                 <Text style={styles.heyHustler}>Hey Hustler</Text>
-                <Animated.View style={[styles.waveIcon, { transform: [{ rotate: waveRotation }] }]}>
-                  <Ionicons name="hand-right" size={24} color="#00f0ff" />
+                <Animated.View style={[styles.waveIcon, { transform: [{ rotate: waveRotation }] }]}> 
+                  {Platform.OS === 'web'
+                    ? <IoHandRight size={24} color="#00f0ff" />
+                    : <RNIonicons name="hand-right" size={24} color="#00f0ff" />}
                 </Animated.View>
               </View>
               <Text style={styles.name}>I&apos;m Luwano Casby Mhango</Text>
@@ -158,42 +182,54 @@ const AboutScreen = () => {
 
           {/* Enhanced Technical Expertise Section */}
           <View style={styles.sectionContainer}>
-            <View style={styles.sectionTitleContainer}>
-              <MaterialCommunityIcons name="code-braces" size={24} color="#00f0ff" />
-              <Text style={styles.sectionTitle}>Technical Expertise</Text>
-            </View>
+      <View style={styles.sectionTitleContainer}>
+        {Platform.OS === 'web'
+          ? <FaCode size={24} color="#00f0ff" />
+          : <RNMaterialCommunityIcons name="code-braces" size={24} color="#00f0ff" />}
+        <Text style={styles.sectionTitle}>Technical Expertise</Text>
+      </View>
             
             {/* Programming Languages */}
             <SkillCategory
-              icon={<FontAwesome5 name="code" size={20} color="#00f0ff" />}
+              icon={Platform.OS === 'web'
+                ? <FaCode size={20} color="#00f0ff" />
+                : <RNFontAwesome5 name="code" size={20} color="#00f0ff" />}
               title="Programming Languages"
               skills={['Java', 'C#', 'Kotlin', 'TypeScript & JavaScript', 'CSS, HTML, Bootstrap']}
             />
 
             {/* Frameworks & Platforms */}
             <SkillCategory
-              icon={<MaterialCommunityIcons name="react" size={20} color="#61DAFB" />}
+              icon={Platform.OS === 'web'
+                ? <FaReact size={20} color="#61DAFB" />
+                : <RNMaterialCommunityIcons name="react" size={20} color="#61DAFB" />}
               title="Frameworks & Development"
               skills={['React Native', 'ASP.NET Core & MVC', 'Android Studio', '.NET MAUI', 'Windows Forms']}
             />
 
             {/* Database & Backend */}
             <SkillCategory
-              icon={<MaterialCommunityIcons name="database" size={20} color="#00f0ff" />}
+              icon={Platform.OS === 'web'
+                ? <FaDatabase size={20} color="#00f0ff" />
+                : <RNMaterialCommunityIcons name="database" size={20} color="#00f0ff" />}
               title="Database & Backend"
               skills={['Advanced SQL & Database Design', 'API Development with C#', 'Database Management Systems', 'Cloud Development (Azure/AWS)']}
             />
 
             {/* Design & Security */}
             <SkillCategory
-              icon={<MaterialCommunityIcons name="shield-check" size={20} color="#4CAF50" />}
+              icon={Platform.OS === 'web'
+                ? <FaShieldAlt size={20} color="#4CAF50" />
+                : <RNMaterialCommunityIcons name="shield-check" size={20} color="#4CAF50" />}
               title="Design & Security"
               skills={['UI/UX Design - Figma', 'Application Security', 'System Analysis & Design', 'Network Security Principles']}
             />
 
             {/* Project Management */}
             <SkillCategory
-              icon={<MaterialCommunityIcons name="clipboard-check" size={20} color="#FF9800" />}
+              icon={Platform.OS === 'web'
+                ? <FaClipboardCheck size={20} color="#FF9800" />
+                : <RNMaterialCommunityIcons name="clipboard-check" size={20} color="#FF9800" />}
               title="Project Management & Research"
               skills={['IT Project Management', 'Software Engineering', 'Data Structures & Algorithms', 'Research & Analysis']}
             />
@@ -201,27 +237,31 @@ const AboutScreen = () => {
 
           {/* Tech Stack Visual */}
           <View style={styles.sectionContainer}>
-            <View style={styles.sectionTitleContainer}>
-              <MaterialCommunityIcons name="tools" size={24} color="#00f0ff" />
-              <Text style={styles.sectionTitle}>Technology Stack</Text>
-            </View>
+      <View style={styles.sectionTitleContainer}>
+        {Platform.OS === 'web'
+          ? <FaTools size={24} color="#00f0ff" />
+          : <RNMaterialCommunityIcons name="tools" size={24} color="#00f0ff" />}
+        <Text style={styles.sectionTitle}>Technology Stack</Text>
+      </View>
             <View style={styles.techStackGrid}>
-              <TechStack icon="language-java" name="Java" color="#ED8B00" />
-              <TechStack icon="language-csharp" name="C#" color="#239120" />
-              <TechStack icon="language-kotlin" name="Kotlin" color="#0095D5" />
-              <TechStack icon="language-typescript" name="TypeScript" color="#3178C6" />
-              <TechStack icon="react" name="React Native" color="#61DAFB" />
-              <TechStack icon="dot-net" name=".NET" color="#512BD4" />
-              <TechStack icon="database" name="SQL" color="#00f0ff" />
-              <TechStack icon="cloud" name="Cloud" color="#4285F4" />
+            <TechStack icon="language-java" name="Java" color="#ED8B00" />
+            <TechStack icon="language-csharp" name="C#" color="#239120" />
+            <TechStack icon="language-kotlin" name="Kotlin" color="#0095D5" />
+            <TechStack icon="language-typescript" name="TypeScript" color="#3178C6" />
+            <TechStack icon="react" name="React Native" color="#61DAFB" />
+            <TechStack icon="dot-net" name=".NET" color="#512BD4" />
+            <TechStack icon="database" name="SQL" color="#00f0ff" />
+            <TechStack icon="cloud" name="Cloud" color="#4285F4" />
             </View>
           </View>
           
           <View style={styles.sectionContainer}>
-            <View style={styles.sectionTitleContainer}>
-              <AntDesign name="book" size={20} color="#00f0ff" />
-              <Text style={styles.sectionTitle}>Education</Text>
-            </View>
+      <View style={styles.sectionTitleContainer}>
+        {Platform.OS === 'web'
+          ? <FaBook size={20} color="#00f0ff" />
+          : <RNAntDesign name="book" size={20} color="#00f0ff" />}
+        <Text style={styles.sectionTitle}>Education</Text>
+      </View>
             <View style={styles.sectionContent}>
               <Text style={styles.bulletPoint}>• Bachelor of Computer & Information Sciences in Application Development</Text>
               <Text style={styles.bulletPoint}>• IIE Varsity College - NQF Level 7 (Honours Equivalent)</Text>
@@ -230,10 +270,12 @@ const AboutScreen = () => {
           </View>
           
           <View style={styles.sectionContainer}>
-            <View style={styles.sectionTitleContainer}>
-              <MaterialCommunityIcons name="lightbulb" size={24} color="#00f0ff" />
-              <Text style={styles.sectionTitle}>Company Vision</Text>
-            </View>
+      <View style={styles.sectionTitleContainer}>
+        {Platform.OS === 'web'
+          ? <FaLightbulb size={24} color="#00f0ff" />
+          : <RNMaterialCommunityIcons name="lightbulb" size={24} color="#00f0ff" />}
+        <Text style={styles.sectionTitle}>Company Vision</Text>
+      </View>
             <View style={styles.sectionContent}>
               <Text style={styles.visionText}>
                 Hex Hustlers is not just a company &ndash; it&apos;s a vision, a movement, and a mindset. It represents the pursuit of excellence, the drive to innovate, and the relentless passion to chase greatness in all that we do.
@@ -259,7 +301,9 @@ const AboutScreen = () => {
               style={styles.actionButton}
               onPress={() => router.push('/services')}
             >
-              <MaterialCommunityIcons name="briefcase" size={20} color="#ffffff" style={styles.buttonIcon} />
+              {Platform.OS === 'web'
+                ? <FaBriefcase size={20} color="#ffffff" style={styles.buttonIcon} />
+                : <RNMaterialCommunityIcons name="briefcase" size={20} color="#ffffff" style={styles.buttonIcon} />}
               <Text style={styles.buttonText}>VIEW SERVICES</Text>
             </TouchableOpacity>
             
@@ -267,7 +311,9 @@ const AboutScreen = () => {
               style={styles.actionButton}
               onPress={() => router.push('/blueprint')}
             >
-              <MaterialCommunityIcons name="map" size={20} color="#ffffff" style={styles.buttonIcon} />
+              {Platform.OS === 'web'
+                ? <FaMap size={20} color="#ffffff" style={styles.buttonIcon} />
+                : <RNMaterialCommunityIcons name="map" size={20} color="#ffffff" style={styles.buttonIcon} />}
               <Text style={styles.buttonText}>VIEW BLUEPRINT</Text>
             </TouchableOpacity>
 
@@ -275,7 +321,9 @@ const AboutScreen = () => {
               style={styles.actionButton}
               onPress={() => router.push('/hexchatbot')}
             >
-              <MaterialCommunityIcons name="brain" size={20} color="#ffffff" style={styles.buttonIcon} />
+              {Platform.OS === 'web'
+                ? <FaBrain size={20} color="#ffffff" style={styles.buttonIcon} />
+                : <RNMaterialCommunityIcons name="brain" size={20} color="#ffffff" style={styles.buttonIcon} />}
               <Text style={styles.buttonText}>VIEW AI CHAT TOOL</Text>
             </TouchableOpacity>
           </View>

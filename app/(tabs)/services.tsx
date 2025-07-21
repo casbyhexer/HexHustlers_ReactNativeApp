@@ -1,16 +1,40 @@
-import { FontAwesome5, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useEffect, useRef } from 'react';
 import {
   Animated,
   Image,
   ImageBackground,
+  Platform,
   SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View
 } from 'react-native';
+// ...existing code...
+
+// Native icon imports
+import { FontAwesome5 as RNFontAwesome5, Ionicons as RNIonicons, MaterialCommunityIcons as RNMaterialCommunityIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useRef } from 'react';
+
+
+// Web icon imports (static, only used if Platform.OS === 'web')
+import {
+  FaBrain,
+  FaCog,
+  FaDatabase,
+  FaLaptopCode,
+  FaMobileAlt,
+  FaTasks
+} from 'react-icons/fa';
+import { IoCallOutline, IoNotifications } from 'react-icons/io5';
+import {
+  MdApi,
+  MdOutlineBook,
+  MdOutlineHexagon,
+  MdOutlineSecurity,
+  MdPalette,
+  MdSync
+} from 'react-icons/md';
 
 // Service type definition
 type Service = {
@@ -38,37 +62,51 @@ const ServicesScreen = () => {
     {
       title: 'Custom Web Application Development',
       description: 'Scalable, responsive solutions using modern frameworks',
-      icon: <FontAwesome5 name="laptop-code" size={24} color="#00f0ff" />
+      icon: Platform.OS === 'web'
+        ? (FaLaptopCode ? <FaLaptopCode size={24} color="#00f0ff" /> : null)
+        : <RNFontAwesome5 name="laptop-code" size={24} color="#00f0ff" />
     },
     {
       title: 'Mobile App Development',
       description: 'Native and cross-platform apps for iOS and Android',
-      icon: <FontAwesome5 name="mobile-alt" size={24} color="#00f0ff" />
+      icon: Platform.OS === 'web'
+        ? (FaMobileAlt ? <FaMobileAlt size={24} color="#00f0ff" /> : null)
+        : <RNFontAwesome5 name="mobile-alt" size={24} color="#00f0ff" />
     },
     {
       title: 'UI/UX Design & Prototyping',
       description: 'User-centered design that converts visitors to customers',
-      icon: <MaterialCommunityIcons name="palette-outline" size={26} color="#00f0ff" />
+      icon: Platform.OS === 'web'
+        ? (MdPalette ? <MdPalette size={26} color="#00f0ff" /> : null)
+        : <RNMaterialCommunityIcons name="palette-outline" size={26} color="#00f0ff" />
     },
     {
       title: 'Database Design & Development',
       description: 'Optimized data architecture and management solutions',
-      icon: <Ionicons name="server-outline" size={24} color="#00f0ff" />
+      icon: Platform.OS === 'web'
+        ? (FaDatabase ? <FaDatabase size={24} color="#00f0ff" /> : null)
+        : <RNIonicons name="server-outline" size={24} color="#00f0ff" />
     },
     {
       title: 'API Development & Integration',
       description: 'Seamless connectivity between systems and third-party services',
-      icon: <MaterialCommunityIcons name="api" size={24} color="#00f0ff" />
+      icon: Platform.OS === 'web'
+        ? (MdApi ? <MdApi size={24} color="#00f0ff" /> : null)
+        : <RNMaterialCommunityIcons name="api" size={24} color="#00f0ff" />
     },
     {
       title: 'Software Maintenance & Support',
       description: 'Ongoing updates, security patches, and technical assistance',
-      icon: <MaterialCommunityIcons name="cog-sync-outline" size={24} color="#00f0ff" />
+      icon: Platform.OS === 'web'
+        ? (MdSync ? <MdSync size={24} color="#00f0ff" /> : null)
+        : <RNMaterialCommunityIcons name="cog-sync-outline" size={24} color="#00f0ff" />
     },
     {
       title: 'Project Management',
       description: 'End-to-end coordination of software development projects',
-      icon: <MaterialCommunityIcons name="clipboard-check-outline" size={24} color="#00f0ff" />
+      icon: Platform.OS === 'web'
+        ? (FaTasks ? <FaTasks size={24} color="#00f0ff" /> : null)
+        : <RNMaterialCommunityIcons name="clipboard-check-outline" size={24} color="#00f0ff" />
     }
   ];
 
@@ -77,17 +115,23 @@ const ServicesScreen = () => {
     {
       title: 'AI Integration',
       description: 'Custom AI solutions to automate business processes',
-      icon: <MaterialCommunityIcons name="brain" size={24} color="#00f0ff" />
+      icon: Platform.OS === 'web'
+        ? (FaBrain ? <FaBrain size={24} color="#00f0ff" /> : null)
+        : <RNMaterialCommunityIcons name="brain" size={24} color="#00f0ff" />
     },
     {
       title: 'Cybersecurity Consulting',
       description: 'Security assessments and implementation of protective measures',
-      icon: <MaterialCommunityIcons name="shield-lock-outline" size={24} color="#00f0ff" />
+      icon: Platform.OS === 'web'
+        ? (MdOutlineSecurity ? <MdOutlineSecurity size={24} color="#00f0ff" /> : null)
+        : <RNMaterialCommunityIcons name="shield-lock-outline" size={24} color="#00f0ff" />
     },
     {
       title: 'Blockchain Solutions',
       description: 'Smart contracts and decentralized applications (emerging specialty)',
-      icon: <MaterialCommunityIcons name="cube-outline" size={24} color="#00f0ff" />
+      icon: Platform.OS === 'web'
+        ? (MdOutlineHexagon ? <MdOutlineHexagon size={24} color="#00f0ff" /> : null)
+        : <RNMaterialCommunityIcons name="cube-outline" size={24} color="#00f0ff" />
     }
   ];
 
@@ -142,7 +186,9 @@ const ServicesScreen = () => {
             resizeMode="contain"
           />
       <TouchableOpacity onPress={() => router.push('/notifications')}>
-        <Ionicons name="notifications" size={28} color="#00f0ff" />
+        {Platform.OS === 'web'
+          ? (IoNotifications ? <IoNotifications size={28} color="#00f0ff" /> : null)
+          : <RNIonicons name="notifications" size={28} color="#00f0ff" />}
       </TouchableOpacity>
         </View>
         
@@ -164,11 +210,15 @@ const ServicesScreen = () => {
           <View style={styles.sectionContainer}>
             <View style={styles.sectionHeaderContainer}>
               <View style={styles.sectionHeaderLeft}>
-                <MaterialCommunityIcons name="code-tags" size={22} color="#00f0ff" />
+                {Platform.OS === 'web'
+                  ? (FaCog ? <FaCog size={22} color="#00f0ff" /> : null)
+                  : <RNMaterialCommunityIcons name="code-tags" size={22} color="#00f0ff" />}
                 <Text style={styles.sectionTitle}>Core Services</Text>
               </View>
               <View style={styles.sectionHeaderGraphic}>
-                <MaterialCommunityIcons name="hexagon-outline" size={20} color="#00f0ff" />
+                {Platform.OS === 'web'
+                  ? (FaCog ? <FaCog size={20} color="#00f0ff" /> : null)
+                  : <RNMaterialCommunityIcons name="hexagon-outline" size={20} color="#00f0ff" />}
               </View>
             </View>
             <View style={styles.servicesContainer}>
@@ -184,11 +234,15 @@ const ServicesScreen = () => {
             {/* Added margin to ensure space between sections */}
             <View style={[styles.sectionHeaderContainer, { marginTop: 10 }]}>
               <View style={styles.sectionHeaderLeft}>
-                <MaterialCommunityIcons name="atom" size={22} color="#00f0ff" />
+                {Platform.OS === 'web'
+                  ? (FaCog ? <FaCog size={22} color="#00f0ff" /> : null)
+                  : <RNMaterialCommunityIcons name="atom" size={22} color="#00f0ff" />}
                 <Text style={styles.sectionTitle}>Advanced Services</Text>
               </View>
               <View style={styles.sectionHeaderGraphic}>
-                <MaterialCommunityIcons name="hexagon-outline" size={20} color="#00f0ff" />
+                {Platform.OS === 'web'
+                  ? (FaCog ? <FaCog size={20} color="#00f0ff" /> : null)
+                  : <RNMaterialCommunityIcons name="hexagon-outline" size={20} color="#00f0ff" />}
               </View>
             </View>
             {/* Added additional padding to create space after header */}
@@ -200,7 +254,9 @@ const ServicesScreen = () => {
           {/* Digital Product Section */}
           <View style={styles.specialProductContainer}>
             <View style={styles.productHeader}>
-              <MaterialCommunityIcons name="book-open-page-variant" size={24} color="#00f0ff" />
+              {Platform.OS === 'web'
+                ? (MdOutlineBook ? <MdOutlineBook size={24} color="#00f0ff" /> : null)
+                : <RNMaterialCommunityIcons name="book-open-page-variant" size={24} color="#00f0ff" />}
               <Text style={styles.productTitle}>Developer&apos;s Blueprint</Text>
             </View>
             <Text style={styles.productDescription}>
@@ -219,7 +275,9 @@ const ServicesScreen = () => {
             style={styles.contactButton}
             onPress={() => router.push('/contact')}
           >
-            <Ionicons name="call-outline" size={20} color="#ffffff" style={styles.contactIcon} />
+            {Platform.OS === 'web'
+              ? (IoCallOutline ? <IoCallOutline size={20} color="#ffffff" style={styles.contactIcon} /> : null)
+              : <RNIonicons name="call-outline" size={20} color="#ffffff" style={styles.contactIcon} />}
             <Text style={styles.contactText}>CONTACT US</Text>
           </TouchableOpacity>
         </Animated.ScrollView>

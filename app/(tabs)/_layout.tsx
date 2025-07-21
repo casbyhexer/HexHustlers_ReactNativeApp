@@ -1,10 +1,12 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Platform } from 'react-native';
 
 import { HapticTab } from '@/components/HapticTab';
 import CyberpunkTabBar from '@/components/ui/CyberpunkTabBar';
-import { IconSymbol } from '@/components/ui/IconSymbol';
+import { IconSymbol as NativeIconSymbol } from '@/components/ui/IconSymbol';
+import { Platform } from 'react-native';
+// Web icon imports
+import { FaBrain, FaCog, FaEnvelope, FaHome, FaInfoCircle, FaRegFileAlt } from 'react-icons/fa';
 //import { useColorScheme } from '@/hooks/useColorScheme';
 
 // Cyberpunk color scheme matching your landing page
@@ -47,11 +49,9 @@ export default function TabLayout() {
         options={{
           title: 'Home',
           tabBarIcon: ({ color, focused }) => (
-            <IconSymbol
-              size={focused ? 28 : 24}
-              name="house.fill"
-              color={focused ? CyberpunkColors.primary : color}
-            />
+            Platform.OS === 'web'
+              ? <FaHome size={focused ? 28 : 24} color={focused ? CyberpunkColors.primary : color} />
+              : <NativeIconSymbol size={focused ? 28 : 24} name="house.fill" color={focused ? CyberpunkColors.primary : color} />
           ),
         }}
       />
@@ -60,11 +60,9 @@ export default function TabLayout() {
         options={{
           title: 'About',
           tabBarIcon: ({ color, focused }) => (
-            <IconSymbol
-              size={focused ? 28 : 24}
-              name="info.circle.fill"
-              color={focused ? CyberpunkColors.primary : color}
-            />
+            Platform.OS === 'web'
+              ? <FaInfoCircle size={focused ? 28 : 24} color={focused ? CyberpunkColors.primary : color} />
+              : <NativeIconSymbol size={focused ? 28 : 24} name="info.circle.fill" color={focused ? CyberpunkColors.primary : color} />
           ),
         }}
       />
@@ -73,11 +71,9 @@ export default function TabLayout() {
         options={{
           title: 'Services',
           tabBarIcon: ({ color, focused }) => (
-            <IconSymbol
-              size={focused ? 28 : 24}
-              name="gear"
-              color={focused ? CyberpunkColors.primary : color}
-            />
+            Platform.OS === 'web'
+              ? <FaCog size={focused ? 28 : 24} color={focused ? CyberpunkColors.primary : color} />
+              : <NativeIconSymbol size={focused ? 28 : 24} name="gear" color={focused ? CyberpunkColors.primary : color} />
           ),
         }}
       />
@@ -86,11 +82,9 @@ export default function TabLayout() {
         options={{
           title: 'Blueprints',
           tabBarIcon: ({ color, focused }) => (
-            <IconSymbol
-              size={focused ? 28 : 24}
-              name="doc.text.fill"
-              color={focused ? CyberpunkColors.primary : color}
-            />
+            Platform.OS === 'web'
+              ? <FaRegFileAlt size={focused ? 28 : 24} color={focused ? CyberpunkColors.primary : color} />
+              : <NativeIconSymbol size={focused ? 28 : 24} name="doc.text.fill" color={focused ? CyberpunkColors.primary : color} />
           ),
         }}
       />
@@ -99,11 +93,9 @@ export default function TabLayout() {
         options={{
           title: 'AI Chat',
           tabBarIcon: ({ color, focused }) => (
-            <IconSymbol
-              size={focused ? 28 : 24}
-              name="brain.head.profile"
-              color={focused ? CyberpunkColors.primary : color}
-            />
+            Platform.OS === 'web'
+              ? <FaBrain size={focused ? 28 : 24} color={focused ? CyberpunkColors.primary : color} />
+              : <NativeIconSymbol size={focused ? 28 : 24} name="brain.head.profile" color={focused ? CyberpunkColors.primary : color} />
           ),
         }}
       />
@@ -112,11 +104,9 @@ export default function TabLayout() {
         options={{
           title: 'Contact',
           tabBarIcon: ({ color, focused }) => (
-            <IconSymbol
-              size={focused ? 28 : 24}
-              name="envelope.fill"
-              color={focused ? CyberpunkColors.primary : color}
-            />
+            Platform.OS === 'web'
+              ? <FaEnvelope size={focused ? 28 : 24} color={focused ? CyberpunkColors.primary : color} />
+              : <NativeIconSymbol size={focused ? 28 : 24} name="envelope.fill" color={focused ? CyberpunkColors.primary : color} />
           ),
         }}
       />

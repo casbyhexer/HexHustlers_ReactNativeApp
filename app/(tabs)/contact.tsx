@@ -1,18 +1,22 @@
 import { useNotifications } from '@/contexts/NotificationContext';
-import { FontAwesome5, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { FontAwesome5 as RNFontAwesome5, Ionicons as RNIonicons, MaterialCommunityIcons as RNMaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
+import { FaChevronRight, FaLinkedin } from 'react-icons/fa';
+import { IoArrowBack, IoBusinessOutline, IoCall, IoMail, IoNotifications, IoTimeOutline } from 'react-icons/io5';
 import {
   Animated,
   Image,
   ImageBackground,
   Linking,
+  Platform,
   SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View
 } from 'react-native';
+
 
 // Contact information type
 type ContactInfo = {
@@ -71,19 +75,25 @@ const ContactScreen = () => {
     {
       type: 'Email',
       value: 'cashexerbusiness@gmail.com',
-      icon: <Ionicons name="mail" size={30} color="#00f0ff" />,
+      icon: Platform.OS === 'web'
+        ? <IoMail size={30} color="#00f0ff" />
+        : <RNIonicons name="mail" size={30} color="#00f0ff" />, 
       action: handleEmailAction
     },
     {
       type: 'LinkedIn',
       value: 'HEX HUSTLERS [PTY] LTD',
-      icon: <FontAwesome5 name="linkedin" size={30} color="#00f0ff" />,
+      icon: Platform.OS === 'web'
+        ? <FaLinkedin size={30} color="#00f0ff" />
+        : <RNFontAwesome5 name="linkedin" size={30} color="#00f0ff" />, 
       action: handleLinkedInAction
     },
     {
       type: 'Phone',
       value: '+27 71 400 8892',
-      icon: <Ionicons name="call" size={30} color="#00f0ff" />,
+      icon: Platform.OS === 'web'
+        ? <IoCall size={30} color="#00f0ff" />
+        : <RNIonicons name="call" size={30} color="#00f0ff" />, 
       action: handlePhoneAction
     }
   ];
@@ -121,7 +131,9 @@ const ContactScreen = () => {
             <Text style={styles.contactValue}>{info.value}</Text>
           </View>
           <View style={styles.arrowContainer}>
-            <MaterialCommunityIcons name="chevron-right" size={24} color="#00f0ff" />
+            {Platform.OS === 'web'
+              ? <FaChevronRight size={24} color="#00f0ff" />
+              : <RNMaterialCommunityIcons name="chevron-right" size={24} color="#00f0ff" />}
           </View>
         </TouchableOpacity>
       </Animated.View>
@@ -142,62 +154,73 @@ const ContactScreen = () => {
             resizeMode="contain"
           />
           <TouchableOpacity onPress={() => router.push('/notifications')}>
-            <Ionicons name="notifications" size={28} color="#00f0ff" />
+            {Platform.OS === 'web'
+              ? <IoNotifications size={28} color="#00f0ff" />
+              : <RNIonicons name="notifications" size={28} color="#00f0ff" />}
           </TouchableOpacity>
         </View>
         
         <View style={styles.contentContainer}>
-          <Animated.View
-            style={[
-              styles.titleContainer,
-              {
-                opacity: fadeAnim,
-                transform: [{ scale: scaleAnim }]
-              }
-            ]}
+          <Animated.ScrollView
+            contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
           >
-            <Text style={styles.contactTitle}>Contact HEX</Text>
-            <View style={styles.titleUnderline} />
-            <Text style={styles.contactSubtitle}>Get in touch with our tech wizards</Text>
-          </Animated.View>
-          
-          <View style={styles.contactsContainer}>
-            {contactInfo.map((info, index) => renderContactCard(info, index))}
-          </View>
-          
-          <Animated.View
-            style={[
-              styles.additionalInfoContainer,
-              {
-                opacity: fadeAnim,
-                transform: [{ translateY: fadeAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [30, 0]
-                })}]
-              }
-            ]}
-          >
-            <View style={styles.infoCard}>
-              <Ionicons name="time-outline" size={20} color="#00f0ff" />
-              <Text style={styles.infoText}>
-                We typically respond within 24-48 hours.
-              </Text>
+            <Animated.View
+              style={[
+                styles.titleContainer,
+                {
+                  opacity: fadeAnim,
+                  transform: [{ scale: scaleAnim }]
+                }
+              ]}
+            >
+              <Text style={styles.contactTitle}>Contact HEX</Text>
+              <View style={styles.titleUnderline} />
+              <Text style={styles.contactSubtitle}>Get in touch with our tech wizards</Text>
+            </Animated.View>
+            <View style={styles.contactsContainer}>
+              {contactInfo.map((info, index) => renderContactCard(info, index))}
             </View>
-            <View style={styles.infoCard}>
-              <Ionicons name="business-outline" size={20} color="#00f0ff" />
-              <Text style={styles.infoText}>
-                Our office hours are Monday-Friday, 09:00-17:00 SAST.
-              </Text>
-            </View>
-          </Animated.View>
-          
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => router.push('/services')}
-          >
-            <Ionicons name="arrow-back" size={20} color="#ffffff" style={styles.backIcon} />
-            <Text style={styles.backText}>BACK TO SERVICES</Text>
-          </TouchableOpacity>
+            <Animated.View
+              style={[
+                styles.additionalInfoContainer,
+                {
+                  opacity: fadeAnim,
+                  transform: [{ translateY: fadeAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [30, 0]
+                  })}]
+                }
+              ]}
+            >
+              <View style={styles.infoCard}>
+                {Platform.OS === 'web'
+                  ? <IoTimeOutline size={20} color="#00f0ff" />
+                  : <RNIonicons name="time-outline" size={20} color="#00f0ff" />}
+                <Text style={styles.infoText}>
+                  We typically respond within 24-48 hours.
+                </Text>
+              </View>
+              <View style={styles.infoCard}>
+                {Platform.OS === 'web'
+                  ? <IoBusinessOutline size={20} color="#00f0ff" />
+                  : <RNIonicons name="business-outline" size={20} color="#00f0ff" />}
+                <Text style={styles.infoText}>
+                  Our office hours are Monday-Friday, 09:00-17:00 SAST.
+                </Text>
+              </View>
+            </Animated.View>
+            <TouchableOpacity 
+              style={styles.backButton}
+              onPress={() => router.push('/services')}
+            >
+              {Platform.OS === 'web'
+                ? <IoArrowBack size={20} color="#ffffff" style={styles.backIcon} />
+                : <RNIonicons name="arrow-back" size={20} color="#ffffff" style={styles.backIcon} />}
+              <Text style={styles.backText}>BACK TO SERVICES</Text>
+            </TouchableOpacity>
+          </Animated.ScrollView>
         </View>
       </SafeAreaView>
     </ImageBackground>

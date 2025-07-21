@@ -1,4 +1,5 @@
-import { FontAwesome5, MaterialIcons } from '@expo/vector-icons';
+// Native icon imports
+import { FontAwesome5 as RNFontAwesome5, MaterialIcons as RNMaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
 import {
@@ -7,13 +8,17 @@ import {
   Easing,
   Image,
   ImageBackground,
+  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
+// Web icon imports
+import { FaLaptopCode, FaRobot } from 'react-icons/fa';
+import { MdBusiness } from 'react-icons/md';
 
 const { width, height } = Dimensions.get('window');
 
@@ -32,7 +37,9 @@ const LandingScreen = () => {
       title: "TECHNOLOGY SERVICES",
       subtitle: "Full-Stack Development",
       description: "Custom Web & Mobile Apps\nAI • Cybersecurity • Blockchain",
-      icon: <FontAwesome5 name="laptop-code" size={24} color="#00f0ff" />,
+      icon: Platform.OS === 'web'
+        ? <FaLaptopCode size={24} color="#00f0ff" />
+        : <RNFontAwesome5 name="laptop-code" size={24} color="#00f0ff" />, 
       route: "/services"
     },
     {
@@ -40,7 +47,9 @@ const LandingScreen = () => {
       title: "BLUEPRINT TOOLS",
       subtitle: "Developer's Success Guide",
       description: "4+ Years Professional Experience\nComplete Career Framework",
-      icon: <MaterialIcons name="business" size={26} color="#00f0ff" />,
+      icon: Platform.OS === 'web'
+        ? <MdBusiness size={26} color="#00f0ff" />
+        : <RNMaterialIcons name="business" size={26} color="#00f0ff" />, 
       route: "/blueprint"
     },
     {
@@ -48,7 +57,9 @@ const LandingScreen = () => {
       title: "HEX HUSTLER$ AI",
       subtitle: "Your Personal Coding Mentor",
       description: "AI-Powered Technical Guidance\nWith That HUSTLER SPIRIT!",
-      icon: <FontAwesome5 name="robot" size={26} color="#00f0ff" />,
+      icon: Platform.OS === 'web'
+        ? <FaRobot size={26} color="#00f0ff" />
+        : <RNFontAwesome5 name="robot" size={26} color="#00f0ff" />, 
       route: "/hexchatbot"
     }
   ];

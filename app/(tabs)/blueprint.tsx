@@ -1,10 +1,11 @@
 import { useNotifications } from '@/contexts/NotificationContext';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons as RNIonicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import * as MailComposer from 'expo-mail-composer';
 import * as Notifications from 'expo-notifications';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
+import { IoArrowBack, IoCloudUploadOutline, IoLogoPaypal, IoMailOutline, IoNotificationsOutline } from 'react-icons/io5';
 import {
   Alert,
   Animated,
@@ -14,6 +15,7 @@ import {
   Linking,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -22,6 +24,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+
 
 const { width } = Dimensions.get('window');
 
@@ -176,14 +179,12 @@ This is an automated email from the Hex Hustlers app.`;
     try {
       const emailSent = await sendEmailWithAttachment(blueprintType);
       
-      // Use emailSent to avoid unused variable warning
       if (emailSent) {
         console.log('Email sent successfully');
       } else {
         console.log('Email failed to send, but continuing with notification');
       }
       
-      // Add notification regardless of email success/failure - only once
       addNotification({
         title: `🎉 ${blueprintType} Blueprint Purchase Submitted!`,
         message: `Your ${blueprintType} Blueprint purchase request has been submitted successfully. You will receive your blueprint within 24 hours after payment verification.`,
@@ -191,7 +192,6 @@ This is an automated email from the Hex Hustlers app.`;
         actionType: 'blueprint_purchase',
       });
 
-      // Show push notification
       await showPushNotification(
         '🎉 Application Submitted!',
         `Your ${blueprintType} Blueprint purchase request has been submitted. You will receive your blueprint within 24 hours.`
@@ -212,7 +212,6 @@ This is an automated email from the Hex Hustlers app.`;
         ]
       );
 
-      // Clear form
       setName('');
       setEmail('');
       setPhone('');
@@ -220,7 +219,6 @@ This is an automated email from the Hex Hustlers app.`;
 
     } catch (error) {
       console.error('Blueprint submission error:', error);
-      // Only show error notification if something goes wrong with the notification system itself
       Alert.alert('Error', 'Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -279,7 +277,9 @@ This is an automated email from the Hex Hustlers app.`;
         resizeMode="contain"
       />
       <TouchableOpacity onPress={() => router.push('/notifications')}>
-        <Ionicons name="notifications" size={28} color="#00f0ff" />
+        {Platform.OS === 'web'
+          ? <IoNotificationsOutline size={28} color="#00f0ff" />
+          : <RNIonicons name="notifications" size={28} color="#00f0ff" />}
       </TouchableOpacity>
     </View>
   );
@@ -355,7 +355,9 @@ This is an automated email from the Hex Hustlers app.`;
           style={styles.backButton}
           onPress={() => router.push('/services')}
         >
-          <Ionicons name="arrow-back" size={20} color="#ffffff" style={styles.backIcon} />
+          {Platform.OS === 'web'
+            ? <IoArrowBack size={20} color="#ffffff" style={styles.backIcon} />
+            : <RNIonicons name="arrow-back" size={20} color="#ffffff" style={styles.backIcon} />}
           <Text style={styles.backText}>BACK TO SERVICES</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -413,7 +415,9 @@ This is an automated email from the Hex Hustlers app.`;
               style={styles.uploadButton}
               onPress={handleDocumentUpload}
             >
-              <Ionicons name="cloud-upload-outline" size={24} color="#00f0ff" />
+              {Platform.OS === 'web'
+                ? <IoCloudUploadOutline size={24} color="#00f0ff" />
+                : <RNIonicons name="cloud-upload-outline" size={24} color="#00f0ff" />}
               <Text style={styles.uploadText}>
                 {uploadedDoc ? 'Document Uploaded' : 'Choose File'}
               </Text>
@@ -422,22 +426,37 @@ This is an automated email from the Hex Hustlers app.`;
               <Text style={styles.uploadedFileName}>{uploadedDoc.name}</Text>
             )}
           </View>
+
+          {/* Payment Method Header */}
+          <View style={styles.paymentMethodContainer}>
+            <Text style={styles.paymentMethodTitle}>Choose Payment Method</Text>
+            <View style={styles.paymentMethodUnderline} />
+          </View>
           
+          {/* Updated EFT Button */}
           <TouchableOpacity 
-            style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
+            style={[styles.eftButton, isSubmitting && styles.submitButtonDisabled]}
             onPress={() => handleBlueprintSubmit(blueprintType)}
             disabled={isSubmitting}
           >
-            <Text style={styles.submitText}>
-              {isSubmitting ? 'SUBMITTING...' : 'EMAIL EFT TO "CASHEXERBUSINESS@GMAIL.COM"'}
-            </Text>
+            <View style={styles.eftButtonContent}>
+              {Platform.OS === 'web'
+                ? <IoMailOutline size={20} color="#ffffff" />
+                : <RNIonicons name="mail-outline" size={20} color="#ffffff" />}
+              <Text style={styles.eftButtonText}>
+                {isSubmitting ? 'SUBMITTING...' : 'EMAIL EFT'}
+              </Text>
+            </View>
+            <Text style={styles.eftEmailText}>cashexerbusiness@gmail.com</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
             style={styles.paymentButton}
             onPress={() => handlePayPalPayment(blueprintType)}
           >
-            <Ionicons name="logo-paypal" size={24} color="#ffffff" />
+            {Platform.OS === 'web'
+              ? <IoLogoPaypal size={24} color="#ffffff" />
+              : <RNIonicons name="logo-paypal" size={24} color="#ffffff" />}
             <Text style={styles.paymentButtonText}>Pay with PayPal</Text>
           </TouchableOpacity>
 
@@ -450,7 +469,9 @@ This is an automated email from the Hex Hustlers app.`;
                 style={styles.contactButton}
                 onPress={() => router.push('/contact')}
               >
-                <Ionicons name="mail-outline" size={20} color="#ffffff" />
+                {Platform.OS === 'web'
+                  ? <IoMailOutline size={20} color="#ffffff" />
+                  : <RNIonicons name="mail-outline" size={20} color="#ffffff" />}
                 <Text style={styles.contactButtonText}>Contact for Consultation Schedule</Text>
               </TouchableOpacity>
             </>
@@ -750,13 +771,29 @@ const styles = StyleSheet.create({
     marginTop: 5,
     textAlign: 'center',
   },
-  submitButton: {
-    backgroundColor: 'rgba(0,240,255,0.2)',
-    borderRadius: 25,
-    paddingVertical: 15,
+  paymentMethodContainer: {
     alignItems: 'center',
-    marginTop: 10,
-    marginBottom: 10,
+    marginVertical: 20,
+  },
+  paymentMethodTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#00f0ff',
+    textAlign: 'center',
+  },
+  paymentMethodUnderline: {
+    height: 2,
+    width: 60,
+    backgroundColor: '#00f0ff',
+    marginTop: 5,
+  },
+  eftButton: {
+    backgroundColor: 'rgba(0,240,255,0.2)',
+    borderRadius: 15,
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    marginBottom: 15,
     borderWidth: 1,
     borderColor: '#00f0ff',
     shadowColor: '#00f0ff',
@@ -765,14 +802,25 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
   },
-  submitButtonDisabled: {
-    backgroundColor: 'rgba(0,240,255,0.1)',
-    opacity: 0.6,
+  eftButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 5,
   },
-  submitText: {
+  eftButtonText: {
     color: '#ffffff',
     fontWeight: 'bold',
     fontSize: 16,
+    marginLeft: 10,
+  },
+  eftEmailText: {
+    color: '#00f0ff',
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  submitButtonDisabled: {
+    backgroundColor: 'rgba(0,240,255,0.1)',
+    opacity: 0.6,
   },
   paymentButton: {
     backgroundColor: 'rgba(0,240,255,0.2)',

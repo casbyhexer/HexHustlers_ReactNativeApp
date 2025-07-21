@@ -17,7 +17,9 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "UIBackgroundModes": ["remote-notification"]
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
       }
     },
     "android": {
@@ -33,7 +35,9 @@
       ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "output": "static",
+      "bundler": "metro"
     },
     "plugins": [
       [
@@ -41,7 +45,9 @@
         {
           "icon": "./assets/notification-icon.png",
           "color": "#00f0ff",
-          "sounds": ["./assets/notification-sound.wav"]
+          "sounds": [
+            "./assets/notification-sound.wav"
+          ]
         }
       ],
       [
@@ -51,6 +57,12 @@
     "notification": {
       "icon": "./assets/notification-icon.png",
       "color": "#00f0ff"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "b42bd925-3624-40d3-b970-a141b5ca24b1"
+      }
+    },
+    "owner": "casbyhexer"
   }
 }
