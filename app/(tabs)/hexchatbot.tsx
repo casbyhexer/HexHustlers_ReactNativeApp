@@ -559,63 +559,65 @@ const renderQuickActions = () => {
         </KeyboardAvoidingView>
 
         {/* Upgrade Modal */}
-        <Modal visible={showUpgradeModal} transparent animationType="slide">
-          <View style={styles.modalOverlay}>
-            <View style={styles.upgradeModal}>
-              <Text style={styles.modalTitle}>🚀 Upgrade to Premium</Text>
-              <Text style={styles.modalText}>
-                You have used your 5 free questions! Choose your payment method:
-              </Text>
-              
-              <View style={styles.premiumFeatures}>
-                <Text style={styles.featureText}>✨ Unlimited questions</Text>
-                <Text style={styles.featureText}>⚡ Priority responses</Text>
-                <Text style={styles.featureText}>🎯 Advanced guidance</Text>
-                <Text style={styles.featureText}>💰 Exclusive strategies</Text>
-              </View>
-              
-              <Text style={styles.priceText}>R350 / $19.99 monthly</Text>
-              
-              <View style={styles.paymentSection}>
-                <View style={styles.bankingSection}>
-            <Text style={styles.bankingSectionTitle}>EFT Banking Details</Text>
-            <Text style={styles.bankingDetails}>• Bank: Nedbank</Text>
-            <Text style={styles.bankingDetails}>• Account Number: 1211596699</Text>
-            <Text style={styles.bankingDetails}>• Account Type: Current Account</Text>
-            <Text style={styles.bankingDetails}>• Reference: HEX HUSTLERS (Pty) Ltd</Text>
-            <Text style={styles.bankingDetails}>• Swift Code: NEDSZAJJ</Text>
-                </View>
-
-                <TouchableOpacity style={styles.eftButton} onPress={handleEmailProof}>
-                  {Platform.OS === 'web' ? (
-                    <MdOutlineEmail color="#fff" size={20} />
-                  ) : (
-                    <MaterialCommunityIcons name="email" size={20} color="#fff" />
-                  )}
-                  <Text style={styles.paymentButtonText}>Send EFT Proof</Text>
-                </TouchableOpacity>
-
-                <Text style={styles.orText}>OR</Text>
-                
-                <TouchableOpacity style={styles.paypalButton} onPress={handlePayPalPayment}>
-                  {Platform.OS === 'web' ? (
-                    <IoLogoPaypal color="#fff" size={20} />
-                  ) : (
-                    <Ionicons name="logo-paypal" size={20} color="#fff" />
-                  )}
-                  <Text style={styles.paymentButtonText}>Pay with PayPal</Text>
-                </TouchableOpacity>
-              </View>
-              
-              <TouchableOpacity 
-                style={styles.closeButton}
-                onPress={() => setShowUpgradeModal(false)}
-              >
-                <Text style={styles.closeButtonText}>Maybe Later</Text>
-              </TouchableOpacity>
+  <Modal visible={showUpgradeModal} transparent animationType="slide">
+    <View style={styles.modalOverlay}>
+      <View style={styles.upgradeModal}>
+        <Text style={styles.modalTitle}>🚀 Upgrade to Premium</Text>
+        <Text style={styles.modalText}>
+          You have used your 5 free questions! Choose your payment method:
+        </Text>
+        
+        <View style={styles.premiumFeatures}>
+          <Text style={styles.featureText}>✨ Unlimited questions</Text>
+          <Text style={styles.featureText}>⚡ Priority responses</Text>
+          <Text style={styles.featureText}>🎯 Advanced guidance</Text>
+          <Text style={styles.featureText}>💰 Exclusive strategies</Text>
+        </View>
+        
+        <Text style={styles.priceText}>R350 / $19.99 monthly</Text>
+        
+        <View style={styles.paymentSection}>
+          <View style={styles.bankingSection}>
+            <View style={styles.bankingDetailsContainer}>
+              <Text style={styles.bankingSectionTitle}>EFT Banking Details</Text>
+              <Text style={styles.bankingDetails}>• Bank: Nedbank</Text>
+              <Text style={styles.bankingDetails}>• Account: 1211596699</Text>
+              <Text style={styles.bankingDetails}>• Type: Current Account</Text>
+              <Text style={styles.bankingDetails}>• Ref: HEX HUSTLERS (Pty) Ltd</Text>
+              <Text style={styles.bankingDetails}>• Swift: NEDSZAJJ</Text>
             </View>
+            
+            <TouchableOpacity style={styles.eftButton} onPress={handleEmailProof}>
+              {Platform.OS === 'web' ? (
+                <MdOutlineEmail color="#fff" size={16} />
+              ) : (
+                <MaterialCommunityIcons name="email" size={16} color="#fff" />
+              )}
+              <Text style={styles.eftButtonText}>Send{'\n'}Proof</Text>
+            </TouchableOpacity>
           </View>
-        </Modal>
+
+          <Text style={styles.orText}>OR</Text>
+          
+          <TouchableOpacity style={styles.paypalButton} onPress={handlePayPalPayment}>
+            {Platform.OS === 'web' ? (
+              <IoLogoPaypal color="#fff" size={18} />
+            ) : (
+              <Ionicons name="logo-paypal" size={18} color="#fff" />
+            )}
+            <Text style={styles.paymentButtonText}>Pay with PayPal</Text>
+          </TouchableOpacity>
+        </View>
+        
+        <TouchableOpacity 
+          style={styles.closeButton}
+          onPress={() => setShowUpgradeModal(false)}
+        >
+          <Text style={styles.closeButtonText}>Maybe Later</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </Modal>
 
         {/* Chat History Modal */}
         <Modal visible={showChatHistory} transparent animationType="slide">
@@ -791,56 +793,155 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   sendButtonDisabled: { backgroundColor: 'rgba(0,240,255,0.3)', elevation: 0 },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', alignItems: 'center' },
+  modalOverlay: { 
+    flex: 1, 
+    backgroundColor: 'rgba(0,0,0,0.8)', 
+    justifyContent: 'center', 
+    alignItems: 'center',
+    paddingHorizontal: 10,
+  },
+  
   upgradeModal: {
     backgroundColor: 'rgba(0,0,0,0.95)',
     borderWidth: 2,
     borderColor: '#00f0ff',
     borderRadius: 20,
-    margin: 10,
-    padding: 15,
+    padding: 20,
     alignItems: 'center',
-    width: width * 0.95,
-    maxHeight: height * 0.9,
+    width: width * 0.92,
+    maxHeight: height * 0.85,
     alignSelf: 'center',
   },
-  modalTitle: { fontSize: 24, fontWeight: 'bold', color: '#00f0ff', marginBottom: 15, textAlign: 'center' },
-  modalText: { fontSize: 16, color: '#ffffff', textAlign: 'center', marginBottom: 20, lineHeight: 24 },
-  premiumFeatures: { width: '100%', marginBottom: 20 },
-  featureText: { fontSize: 16, color: '#ffffff', marginBottom: 8, paddingLeft: 10 },
-  priceText: { fontSize: 22, fontWeight: 'bold', color: '#00f0ff', marginBottom: 25 },
-  paymentSection: { width: '100%', marginBottom: 20 },
-  bankingSection: { backgroundColor: 'rgba(0,240,255,0.1)', borderRadius: 10, padding: 15, marginBottom: 15 },
-  bankingSectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#00f0ff', marginBottom: 10 },
-  bankingDetails: { fontSize: 14, color: '#ffffff', marginBottom: 5 },
+  
+  modalTitle: { 
+    fontSize: 20, 
+    fontWeight: 'bold', 
+    color: '#00f0ff', 
+    marginBottom: 10, 
+    textAlign: 'center' 
+  },
+  
+  modalText: { 
+    fontSize: 14, 
+    color: '#ffffff', 
+    textAlign: 'center', 
+    marginBottom: 15, 
+    lineHeight: 20 
+  },
+  
+  premiumFeatures: { 
+    width: '100%', 
+    marginBottom: 15,
+    paddingHorizontal: 10,
+  },
+  
+  featureText: { 
+    fontSize: 13, 
+    color: '#ffffff', 
+    marginBottom: 6, 
+    paddingLeft: 5 
+  },
+  
+  priceText: { 
+    fontSize: 18, 
+    fontWeight: 'bold', 
+    color: '#00f0ff', 
+    marginBottom: 15 
+  },
+  
+  paymentSection: { 
+    width: '100%', 
+    marginBottom: 15 
+  },
+  
+  bankingSection: { 
+    backgroundColor: 'rgba(0,240,255,0.1)', 
+    borderRadius: 10, 
+    padding: 12, 
+    marginBottom: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  
+  bankingDetailsContainer: {
+    flex: 1,
+    marginRight: 10,
+  },
+  
+  bankingSectionTitle: { 
+    fontSize: 14, 
+    fontWeight: 'bold', 
+    color: '#00f0ff', 
+    marginBottom: 8 
+  },
+  
+  bankingDetails: { 
+    fontSize: 12, 
+    color: '#ffffff', 
+    marginBottom: 3 
+  },
+  
   eftButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#28a745',
-    borderRadius: 25,
-    paddingVertical: 12,
-    marginBottom: 10,
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    minWidth: 80,
   },
-  orText: { fontSize: 16, color: '#ffffff', textAlign: 'center', marginVertical: 10 },
+  
+  eftButtonText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: 'bold',
+    marginLeft: 4,
+    textAlign: 'center',
+  },
+  
+  orText: { 
+    fontSize: 14, 
+    color: '#ffffff', 
+    textAlign: 'center', 
+    marginVertical: 8 
+  },
+  
   paypalButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#0070ba',
     borderRadius: 25,
-    paddingVertical: 12,
+    paddingVertical: 10,
+    width: '100%',
+    marginBottom: 12,
   },
-  paymentButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold', marginLeft: 8 },
+  
+  paymentButtonText: { 
+    color: '#fff', 
+    fontSize: 14, 
+    fontWeight: 'bold', 
+    marginLeft: 6 
+  },
+  
   closeButton: {
     backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: '#666',
-    borderRadius: 25,
-    paddingVertical: 12,
-    paddingHorizontal: 30,
+    borderRadius: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 25,
+    width: '100%',
   },
-  closeButtonText: { color: '#666', fontSize: 16, fontWeight: '600' },
+  
+  closeButtonText: { 
+    color: '#666', 
+    fontSize: 14, 
+    fontWeight: '600',
+    textAlign: 'center',
+  },
   historyModal: {
     backgroundColor: 'rgba(0,0,0,0.95)',
     borderWidth: 2,
