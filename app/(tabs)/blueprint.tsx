@@ -402,11 +402,12 @@ This is an automated email from the Hex Hustlers app.`;
           
           <View style={styles.bankingSection}>
             <Text style={styles.bankingSectionTitle}>EFT Banking Details</Text>
-            <Text style={styles.bankingDetails}>• Bank: Nedbank</Text>
-            <Text style={styles.bankingDetails}>• Account Number: 1211596699</Text>
+            <Text style={styles.bankingDetails}>• Bank Name: Nedbank</Text>
+            <Text style={styles.bankingDetails}>• Account Number: 1330568761</Text>
             <Text style={styles.bankingDetails}>• Account Type: Current Account</Text>
-            <Text style={styles.bankingDetails}>• Reference: HEX HUSTLERS (Pty) Ltd</Text>
+            <Text style={styles.bankingDetails}>• Account Holder: HEX HUSTLERS (Pty) Ltd</Text>
             <Text style={styles.bankingDetails}>• Swift Code: NEDSZAJJ</Text>
+            <Text style={styles.bankingDetails}>• Branch Code: 198765</Text>
           </View>
           
           <View style={styles.uploadSection}>

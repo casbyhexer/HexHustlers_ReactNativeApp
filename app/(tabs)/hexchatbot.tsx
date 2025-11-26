@@ -581,10 +581,10 @@ const renderQuickActions = () => {
             <View style={styles.bankingDetailsContainer}>
               <Text style={styles.bankingSectionTitle}>EFT Banking Details</Text>
               <Text style={styles.bankingDetails}>• Bank: Nedbank</Text>
-              <Text style={styles.bankingDetails}>• Account: 1211596699</Text>
+              <Text style={styles.bankingDetails}>• Account: 1330568761</Text>
               <Text style={styles.bankingDetails}>• Type: Current Account</Text>
-              <Text style={styles.bankingDetails}>• Ref: HEX HUSTLERS (Pty) Ltd</Text>
-              <Text style={styles.bankingDetails}>• Swift: NEDSZAJJ</Text>
+              <Text style={styles.bankingDetails}>• Holder: HEX HUSTLERS (Pty) Ltd</Text>
+              <Text style={styles.bankingDetails}>• Swift/Branch: NEDSZAJJ/198765</Text>
             </View>
             
             <TouchableOpacity style={styles.eftButton} onPress={handleEmailProof}>
