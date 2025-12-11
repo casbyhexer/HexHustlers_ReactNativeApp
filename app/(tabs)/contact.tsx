@@ -1,9 +1,9 @@
 import { useNotifications } from '@/contexts/NotificationContext';
 import { FontAwesome5 as RNFontAwesome5, Ionicons as RNIonicons, MaterialCommunityIcons as RNMaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { FaChevronRight, FaLinkedin } from 'react-icons/fa';
-import { IoArrowBack, IoBusinessOutline, IoCall, IoMail, IoNotifications, IoTimeOutline } from 'react-icons/io5';
+import { IoArrowBack, IoBusinessOutline, IoCall, IoMail, IoNotifications, IoTimeOutline, IoSend, IoPerson, IoText } from 'react-icons/io5';
 import {
   Animated,
   Image,
@@ -13,10 +13,12 @@ import {
   SafeAreaView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
-  View
+  View,
+  Alert,
+  ScrollView
 } from 'react-native';
-
 
 // Contact information type
 type ContactInfo = {
@@ -26,13 +28,48 @@ type ContactInfo = {
   action: () => void;
 };
 
+// Form data type
+type FormData = {
+  name: string;
+  email: string;
+  service: string;
+  message: string;
+};
+
 const ContactScreen = () => {
   const router = useRouter();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
   
+  // Form state
+  const [formData, setFormData] = useState<FormData>({
+    name: '',
+    email: '',
+    service: '',
+    message: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  
   // Get the notification context
   const { addServiceContactNotification } = useNotifications() as any;
+  
+  // Services list based on Hex Hustlers offerings
+  const services = [
+    'Website Development',
+    'Mobile App Development',
+    'AI Integration & Solutions',
+    'Custom Software Development',
+    'Database Development',
+    'SaaS & Cloud Solutions',
+    'Cybersecurity Services',
+    'IT Consulting',
+    'UI/UX Design',
+    'E-commerce Solutions',
+    'Digital Marketing',
+    'Technical Support',
+    'Other'
+  ];
   
   useEffect(() => {
     // Initial fade-in and scale animation
@@ -49,25 +86,91 @@ const ContactScreen = () => {
         useNativeDriver: true,
       })
     ]).start();
-  }, [fadeAnim, scaleAnim]); // Added missing dependencies
+  }, [fadeAnim, scaleAnim]);
 
   // Enhanced contact actions with notification trigger
   const handleEmailAction = () => {
     Linking.openURL('mailto:cashexerbusiness@gmail.com');
-    // Trigger notification after email action
     addServiceContactNotification();
   };
 
   const handlePhoneAction = () => {
     Linking.openURL('tel:+27714008892');
-    // Trigger notification after phone action
     addServiceContactNotification();
   };
 
   const handleLinkedInAction = () => {
     Linking.openURL('https://www.linkedin.com/company/hex-hustlers/?viewAsMember=true');
-    // Optional: You might not want to trigger notification for LinkedIn visits
-    // as it's more of a browse action rather than a direct service request
+  };
+
+  // WhatsApp message handler
+  const sendWhatsAppMessage = () => {
+    const { name, email, service, message } = formData;
+    const whatsappMessage = `Hi! I'm interested in your services.\n\nName: ${name}\nEmail: ${email}\nService: ${service}\n\nMessage: ${message}\n\nSent from Hex Hustlers App`;
+    const encodedMessage = encodeURIComponent(whatsappMessage);
+    const whatsappUrl = `https://wa.me/27714008892?text=${encodedMessage}`;
+    
+    Linking.openURL(whatsappUrl);
+    addServiceContactNotification();
+  };
+
+  // Email submission handler
+  const sendEmail = () => {
+    const { name, email, service, message } = formData;
+    const subject = `New Service Inquiry: ${service}`;
+    const body = `Name: ${name}\nEmail: ${email}\nService: ${service}\n\nMessage:\n${message}\n\nSent from Hex Hustlers App`;
+    const emailUrl = `mailto:cashexerbusiness@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    
+    Linking.openURL(emailUrl);
+    addServiceContactNotification();
+  };
+
+  // Form submission handler
+  const handleSubmit = () => {
+    if (!formData.name || !formData.email || !formData.service || !formData.message) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    // Show options for sending
+    Alert.alert(
+      'Send Message',
+      'How would you like to send your message?',
+      [
+        {
+          text: 'WhatsApp',
+          onPress: () => {
+            sendWhatsAppMessage();
+            resetForm();
+            setIsSubmitting(false);
+          }
+        },
+        {
+          text: 'Email',
+          onPress: () => {
+            sendEmail();
+            resetForm();
+            setIsSubmitting(false);
+          }
+        },
+        {
+          text: 'Cancel',
+          style: 'cancel',
+          onPress: () => setIsSubmitting(false)
+        }
+      ]
+    );
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      email: '',
+      service: '',
+      message: ''
+    });
   };
 
   // Contact information data with updated actions
@@ -140,6 +243,139 @@ const ContactScreen = () => {
     );
   };
 
+  // Render service picker
+  const renderServicePicker = () => {
+    return (
+      <View style={styles.serviceContainer}>
+        <Text style={styles.inputLabel}>Service *</Text>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          style={styles.serviceScrollView}
+        >
+          {services.map((service, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.serviceChip,
+                formData.service === service && styles.serviceChipSelected
+              ]}
+              onPress={() => setFormData({ ...formData, service })}
+            >
+              <Text style={[
+                styles.serviceChipText,
+                formData.service === service && styles.serviceChipTextSelected
+              ]}>
+                {service}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+    );
+  };
+
+  // Contact form component
+  const renderContactForm = () => {
+    return (
+      <Animated.View
+        style={[
+          styles.formContainer,
+          {
+            opacity: fadeAnim,
+            transform: [{ 
+              translateY: fadeAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [30, 0]
+              })
+            }]
+          }
+        ]}
+      >
+        <View style={styles.formHeader}>
+          <Text style={styles.formTitle}>Send us a message</Text>
+          <Text style={styles.formSubtitle}>Let&apos;s discuss your project requirements</Text>
+        </View>
+
+        <View style={styles.formContent}>
+          {/* Name Input */}
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Full Name *</Text>
+            <View style={styles.inputWrapper}>
+              {Platform.OS === 'web'
+                ? <IoPerson size={20} color="#00f0ff" />
+                : <RNIonicons name="person" size={20} color="#00f0ff" />}
+              <TextInput
+                style={[styles.textInput, { marginLeft: 12 }]}
+                placeholder="Enter your full name"
+                placeholderTextColor="#888"
+                value={formData.name}
+                onChangeText={(text) => setFormData({ ...formData, name: text })}
+              />
+            </View>
+          </View>
+
+          {/* Email Input */}
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Email Address *</Text>
+            <View style={styles.inputWrapper}>
+              {Platform.OS === 'web'
+                ? <IoMail size={20} color="#00f0ff" />
+                : <RNIonicons name="mail" size={20} color="#00f0ff" />}
+              <TextInput
+                style={[styles.textInput, { marginLeft: 12 }]}
+                placeholder="Enter your email address"
+                placeholderTextColor="#888"
+                value={formData.email}
+                onChangeText={(text) => setFormData({ ...formData, email: text })}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            </View>
+          </View>
+
+          {/* Service Selection */}
+          {renderServicePicker()}
+
+          {/* Message Input */}
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Message *</Text>
+            <View style={[styles.inputWrapper, styles.messageWrapper]}>
+              {Platform.OS === 'web'
+                ? <IoText size={20} color="#00f0ff" />
+                : <RNIonicons name="text" size={20} color="#00f0ff" />}
+              <TextInput
+                style={[styles.textInput, styles.messageInput, { marginLeft: 12 }]}
+                placeholder="Tell us about your project requirements..."
+                placeholderTextColor="#888"
+                value={formData.message}
+                onChangeText={(text) => setFormData({ ...formData, message: text })}
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+              />
+            </View>
+          </View>
+
+          {/* Submit Button */}
+          <TouchableOpacity
+            style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
+            onPress={handleSubmit}
+            disabled={isSubmitting}
+            activeOpacity={0.7}
+          >
+            {Platform.OS === 'web'
+              ? <IoSend size={20} color="#ffffff" />
+              : <RNIonicons name="send" size={20} color="#ffffff" />}
+            <Text style={[styles.submitText, { marginLeft: 10 }]}>
+              {isSubmitting ? 'Sending...' : 'Send Message'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </Animated.View>
+    );
+  };
+
   return (
     <ImageBackground
       source={require('../../assets/hexhustlersmedia/black_gradient_blue_1_background_by_mannyt1013_deyc41r-fullview.jpg')}
@@ -160,68 +396,96 @@ const ContactScreen = () => {
           </TouchableOpacity>
         </View>
         
-        <View style={styles.contentContainer}>
-          <Animated.ScrollView
-            contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
+        <ScrollView 
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <Animated.View
+            style={[
+              styles.titleContainer,
+              {
+                opacity: fadeAnim,
+                transform: [{ scale: scaleAnim }]
+              }
+            ]}
           >
-            <Animated.View
-              style={[
-                styles.titleContainer,
-                {
-                  opacity: fadeAnim,
-                  transform: [{ scale: scaleAnim }]
-                }
-              ]}
+            <Text style={styles.contactTitle}>Contact HEX</Text>
+            <View style={styles.titleUnderline} />
+            <Text style={styles.contactSubtitle}>Get in touch with our tech wizards</Text>
+          </Animated.View>
+
+          {/* Toggle between contact info and form */}
+          <View style={styles.toggleContainer}>
+            <TouchableOpacity
+              style={[styles.toggleButton, !showForm && styles.toggleButtonActive]}
+              onPress={() => setShowForm(false)}
             >
-              <Text style={styles.contactTitle}>Contact HEX</Text>
-              <View style={styles.titleUnderline} />
-              <Text style={styles.contactSubtitle}>Get in touch with our tech wizards</Text>
-            </Animated.View>
-            <View style={styles.contactsContainer}>
-              {contactInfo.map((info, index) => renderContactCard(info, index))}
-            </View>
-            <Animated.View
-              style={[
-                styles.additionalInfoContainer,
-                {
-                  opacity: fadeAnim,
-                  transform: [{ translateY: fadeAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [30, 0]
-                  })}]
-                }
-              ]}
-            >
-              <View style={styles.infoCard}>
-                {Platform.OS === 'web'
-                  ? <IoTimeOutline size={20} color="#00f0ff" />
-                  : <RNIonicons name="time-outline" size={20} color="#00f0ff" />}
-                <Text style={styles.infoText}>
-                  We typically respond within 24-48 hours.
-                </Text>
-              </View>
-              <View style={styles.infoCard}>
-                {Platform.OS === 'web'
-                  ? <IoBusinessOutline size={20} color="#00f0ff" />
-                  : <RNIonicons name="business-outline" size={20} color="#00f0ff" />}
-                <Text style={styles.infoText}>
-                  Our office hours are Monday-Friday, 09:00-17:00 SAST.
-                </Text>
-              </View>
-            </Animated.View>
-            <TouchableOpacity 
-              style={styles.backButton}
-              onPress={() => router.push('/services')}
-            >
-              {Platform.OS === 'web'
-                ? <IoArrowBack size={20} color="#ffffff" style={styles.backIcon} />
-                : <RNIonicons name="arrow-back" size={20} color="#ffffff" style={styles.backIcon} />}
-              <Text style={styles.backText}>BACK TO SERVICES</Text>
+              <Text style={[styles.toggleText, !showForm && styles.toggleTextActive]}>
+                Quick Contact
+              </Text>
             </TouchableOpacity>
-          </Animated.ScrollView>
-        </View>
+            <TouchableOpacity
+              style={[styles.toggleButton, showForm && styles.toggleButtonActive]}
+              onPress={() => setShowForm(true)}
+            >
+              <Text style={[styles.toggleText, showForm && styles.toggleTextActive]}>
+                Send Message
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {!showForm ? (
+            <>
+              <View style={styles.contactsContainer}>
+                {contactInfo.map((info, index) => renderContactCard(info, index))}
+              </View>
+              
+              <Animated.View
+                style={[
+                  styles.additionalInfoContainer,
+                  {
+                    opacity: fadeAnim,
+                    transform: [{ translateY: fadeAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [30, 0]
+                    })}]
+                  }
+                ]}
+              >
+                <View style={styles.infoCard}>
+                  {Platform.OS === 'web'
+                    ? <IoTimeOutline size={20} color="#00f0ff" />
+                    : <RNIonicons name="time-outline" size={20} color="#00f0ff" />}
+                  <Text style={styles.infoText}>
+                    We typically respond within 24-48 hours.
+                  </Text>
+                </View>
+                <View style={styles.infoCard}>
+                  {Platform.OS === 'web'
+                    ? <IoBusinessOutline size={20} color="#00f0ff" />
+                    : <RNIonicons name="business-outline" size={20} color="#00f0ff" />}
+                  <Text style={styles.infoText}>
+                    Our office hours are Monday-Friday, 09:00-17:00 SAST.
+                  </Text>
+                </View>
+              </Animated.View>
+            </>
+          ) : (
+            renderContactForm()
+          )}
+
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => router.push('/services')}
+          >
+            {Platform.OS === 'web'
+              ? <IoArrowBack size={20} color="#ffffff" />
+              : <RNIonicons name="arrow-back" size={20} color="#ffffff" />}
+            <Text style={[styles.backText, { marginLeft: 10 }]}>BACK TO SERVICES</Text>
+          </TouchableOpacity>
+        </ScrollView>
       </SafeAreaView>
     </ImageBackground>
   );
@@ -249,14 +513,16 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
   },
-  contentContainer: {
+  scrollView: {
     flex: 1,
-    justifyContent: 'center',
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
     paddingBottom: 50,
   },
   titleContainer: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 30,
   },
   contactTitle: {
     fontSize: 32,
@@ -273,6 +539,7 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     marginTop: 5,
     fontStyle: 'italic',
+    textAlign: 'center',
   },
   titleUnderline: {
     height: 3,
@@ -284,6 +551,35 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.8,
     shadowRadius: 10,
     elevation: 5,
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 25,
+    padding: 4,
+    marginBottom: 25,
+    borderWidth: 1,
+    borderColor: 'rgba(0,240,255,0.3)',
+  },
+  toggleButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    alignItems: 'center',
+  },
+  toggleButtonActive: {
+    backgroundColor: 'rgba(0,240,255,0.2)',
+    borderWidth: 1,
+    borderColor: '#00f0ff',
+  },
+  toggleText: {
+    color: '#888',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  toggleTextActive: {
+    color: '#00f0ff',
   },
   contactsContainer: {
     width: '100%',
@@ -359,6 +655,125 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     flex: 1,
   },
+  formContainer: {
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    borderRadius: 20,
+    padding: 25,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(0,240,255,0.3)',
+    shadowColor: '#00f0ff',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  formHeader: {
+    alignItems: 'center',
+    marginBottom: 25,
+  },
+  formTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#00f0ff',
+    marginBottom: 5,
+  },
+  formSubtitle: {
+    fontSize: 14,
+    color: '#e0e0e0',
+    textAlign: 'center',
+  },
+  formContent: {
+    gap: 20,
+  },
+  inputContainer: {
+    marginBottom: 5,
+  },
+  inputLabel: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
+    marginLeft: 5,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(0,240,255,0.3)',
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+  },
+  messageWrapper: {
+    alignItems: 'flex-start',
+    paddingVertical: 15,
+  },
+  textInput: {
+    flex: 1,
+    color: '#ffffff',
+    fontSize: 16,
+    padding: 0,
+  },
+  messageInput: {
+    height: 80,
+    textAlignVertical: 'top',
+  },
+  serviceContainer: {
+    marginBottom: 5,
+  },
+  serviceScrollView: {
+    maxHeight: 60,
+  },
+  serviceChip: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 20,
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    marginRight: 10,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(0,240,255,0.3)',
+  },
+  serviceChipSelected: {
+    backgroundColor: 'rgba(0,240,255,0.2)',
+    borderColor: '#00f0ff',
+  },
+  serviceChipText: {
+    color: '#e0e0e0',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  serviceChipTextSelected: {
+    color: '#00f0ff',
+    fontWeight: '600',
+  },
+  submitButton: {
+    backgroundColor: 'rgba(0,240,255,0.2)',
+    borderRadius: 12,
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#00f0ff',
+    shadowColor: '#00f0ff',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 8,
+    marginTop: 10,
+  },
+  submitButtonDisabled: {
+    opacity: 0.6,
+  },
+  submitText: {
+    color: '#ffffff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
   backButton: {
     backgroundColor: 'rgba(0,240,255,0.2)',
     borderRadius: 25,
@@ -374,9 +789,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.5,
     shadowRadius: 10,
     elevation: 8,
-  },
-  backIcon: {
-    marginRight: 10,
   },
   backText: {
     color: '#ffffff',
