@@ -5,7 +5,19 @@ import * as MailComposer from 'expo-mail-composer';
 import * as Notifications from 'expo-notifications';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { IoArrowBack, IoCloudUploadOutline, IoLogoPaypal, IoMailOutline, IoNotificationsOutline } from 'react-icons/io5';
+import {
+  IoArrowBack,
+  IoBrushOutline,
+  IoCheckmarkCircle,
+  IoCloudUploadOutline,
+  IoCodeSlash,
+  IoFitnessOutline,
+  IoLogoPaypal,
+  IoMailOutline,
+  IoNotificationsOutline,
+  IoStarOutline,
+  IoTrendingUpOutline
+} from 'react-icons/io5';
 import {
   Alert,
   Animated,
@@ -13,8 +25,6 @@ import {
   Image,
   ImageBackground,
   Linking,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
   Platform,
   SafeAreaView,
   ScrollView,
@@ -25,8 +35,7 @@ import {
   View
 } from 'react-native';
 
-
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 // Configure notifications
 Notifications.setNotificationHandler({
@@ -39,31 +48,292 @@ Notifications.setNotificationHandler({
   }),
 });
 
+interface CourseCategory {
+  id: string;
+  title: string;
+  subtitle: string;
+  icon: any;
+  color: string;
+  courses: Course[];
+}
+
+interface Course {
+  id: string;
+  title: string;
+  subtitle: string;
+  price: string;
+  priceUSD: string;
+  duration: string;
+  level: string;
+  features: string[];
+  description: string;
+  highlights: string[];
+  category: string;
+}
+
 const BlueprintScreen = () => {
   const router = useRouter();
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const scrollViewRef = useRef<ScrollView>(null);
+  const slideAnim = useRef(new Animated.Value(50)).current;
   const { addNotification } = useNotifications();
   
   // Form states
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [currentPage, setCurrentPage] = useState(0);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [uploadedDoc, setUploadedDoc] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const pageNames = ['Plans', 'Rich Version', 'Wealthy Version'];
+  const [showEnrollment, setShowEnrollment] = useState(false);
+  const [activeCategory, setActiveCategory] = useState('tech');
 
   useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 800,
-      useNativeDriver: true,
-    }).start();
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+      })
+    ]).start();
 
     registerForPushNotificationsAsync();
-  }, [fadeAnim]);
+  }, [fadeAnim, slideAnim]);
+
+  const courseCategories: CourseCategory[] = [
+    {
+      id: 'tech',
+      title: 'Code Your Success',
+      subtitle: 'Master the digital realm',
+      icon: IoCodeSlash,
+      color: '#00f0ff',
+      courses: [
+        {
+          id: 'code-rich',
+          title: 'Code Your Success: Rich Developer',
+          subtitle: 'Complete Development Mastery',
+          price: 'R500',
+          priceUSD: '$29',
+          duration: '6-8 weeks',
+          level: 'Beginner to Intermediate',
+          features: [
+            'Complete development guide with code samples',
+            'Project planning worksheets & templates',
+            'Technology selection framework',
+            'Security implementation guide',
+            'Real-world application examples',
+            'Implementation checklists & roadmaps'
+          ],
+          description: 'Transform your coding journey from beginner to professional developer. This comprehensive blueprint covers everything from foundational programming concepts to advanced development practices.',
+          highlights: [
+            'Build 5+ Real Projects',
+            'Master Full-Stack Development',
+            'Learn Industry Best Practices'
+          ],
+          category: 'tech'
+        },
+        {
+          id: 'code-wealthy',
+          title: 'Code Your Success: Wealthy Developer',
+          subtitle: 'Premium Mentorship Program',
+          price: 'R2000',
+          priceUSD: '$129',
+          duration: 'Monthly Consultations',
+          level: 'All Levels',
+          features: [
+            'Everything in Rich Developer package',
+            '1-hour monthly consultation calls',
+            'Personalized project guidance',
+            'Priority email & chat support',
+            'Exclusive developer resources',
+            'Career advancement strategies'
+          ],
+          description: 'Accelerate your development career with personalized mentorship and ongoing support. Perfect for ambitious developers ready to reach the next level.',
+          highlights: [
+            'Direct Mentor Access',
+            'Customized Learning Path',
+            'Career Growth Strategy'
+          ],
+          category: 'tech'
+        }
+      ]
+    },
+    {
+      id: 'fitness',
+      title: 'Forge Your Greatness',
+      subtitle: 'Sculpt your ultimate physique',
+      icon: IoFitnessOutline,
+      color: '#ff6b35',
+      courses: [
+        {
+          id: 'forge-warrior',
+          title: 'Forge Your Greatness: Warrior',
+          subtitle: 'Foundation Fitness Blueprint',
+          price: 'R350',
+          priceUSD: '$19',
+          duration: '8 weeks',
+          level: 'Beginner to Intermediate',
+          features: [
+            'Complete workout program design',
+            'Nutrition planning & meal prep guides',
+            'Progress tracking systems',
+            'Form technique video library',
+            'Supplement optimization guide',
+            'Mental resilience training'
+          ],
+          description: 'Build an unbreakable foundation of strength, endurance, and discipline. This program transforms your body and mind through proven fitness methodologies.',
+          highlights: [
+            'Transform Your Physique',
+            'Build Mental Toughness',
+            'Create Lasting Habits'
+          ],
+          category: 'fitness'
+        },
+        {
+          id: 'forge-champion',
+          title: 'Forge Your Greatness: Champion',
+          subtitle: 'Elite Performance Program',
+          price: 'R1500',
+          priceUSD: '$89',
+          duration: '12 weeks + Coaching',
+          level: 'Intermediate to Advanced',
+          features: [
+            'Everything in Warrior package',
+            'Monthly coaching calls',
+            'Personalized program adjustments',
+            'Advanced training techniques',
+            'Competition preparation protocols',
+            'Lifestyle optimization strategies'
+          ],
+          description: 'Reach elite levels of fitness and performance with personalized coaching and advanced training protocols designed for champions.',
+          highlights: [
+            'Personal Coaching Access',
+            'Advanced Protocols',
+            'Peak Performance Focus'
+          ],
+          category: 'fitness'
+        }
+      ]
+    },
+    {
+      id: 'creative',
+      title: 'Create Your Legacy',
+      subtitle: 'Master the art of expression',
+      icon: IoBrushOutline,
+      color: '#a855f7',
+      courses: [
+        {
+          id: 'create-artist',
+          title: 'Create Your Legacy: Artist',
+          subtitle: 'Creative Expression Mastery',
+          price: 'R450',
+          priceUSD: '$25',
+          duration: '10 weeks',
+          level: 'All Levels',
+          features: [
+            'Creative workflow optimization',
+            'Digital content creation mastery',
+            'Brand building & audience development',
+            'Professional portfolio strategies',
+            'Creative business fundamentals',
+            'Performance & presentation skills'
+          ],
+          description: 'Unlock your creative potential and build a sustainable artistic practice. Whether you express through music, visual arts, or digital content, learn to create work that resonates and builds a loyal following.',
+          highlights: [
+            'Develop Signature Style',
+            'Build Professional Brand',
+            'Monetize Your Creativity'
+          ],
+          category: 'creative'
+        },
+        {
+          id: 'create-visionary',
+          title: 'Create Your Legacy: Visionary',
+          subtitle: 'Elite Creative Mentorship',
+          price: 'R1800',
+          priceUSD: '$109',
+          duration: 'Monthly Sessions',
+          level: 'Intermediate to Professional',
+          features: [
+            'Everything in Artist package',
+            'Monthly creative mentorship calls',
+            'Personalized project guidance',
+            'Industry networking opportunities',
+            'Performance & release strategies',
+            'Creative business scaling methods'
+          ],
+          description: 'Transform from artist to visionary leader in the creative industry. Build a legacy that inspires through authentic expression, strategic releases, and meaningful connections with your audience.',
+          highlights: [
+            'Creative Mentorship',
+            'Industry Connections',
+            'Legacy Building Focus'
+          ],
+          category: 'creative'
+        }
+      ]
+    },
+    {
+      id: 'investment',
+      title: 'Build Your Empire',
+      subtitle: 'Master wealth creation',
+      icon: IoTrendingUpOutline,
+      color: '#10b981',
+      courses: [
+        {
+          id: 'build-investor',
+          title: 'Build Your Empire: Investor',
+          subtitle: 'Wealth Building Fundamentals',
+          price: 'R600',
+          priceUSD: '$35',
+          duration: '12 weeks',
+          level: 'Beginner to Intermediate',
+          features: [
+            'Investment strategy fundamentals',
+            'Portfolio diversification methods',
+            'Risk management frameworks',
+            'Market analysis techniques',
+            'Cryptocurrency & DeFi guide',
+            'Passive income stream creation'
+          ],
+          description: 'Master the art of wealth creation through strategic investing. Learn to build and manage a portfolio that generates lasting financial freedom.',
+          highlights: [
+            'Build Wealth Systematically',
+            'Multiple Income Streams',
+            'Financial Independence'
+          ],
+          category: 'investment'
+        },
+        {
+          id: 'build-mogul',
+          title: 'Build Your Empire: Mogul',
+          subtitle: 'Elite Wealth Strategy',
+          price: 'R2500',
+          priceUSD: '$149',
+          duration: 'Quarterly Strategy Sessions',
+          level: 'Advanced',
+          features: [
+            'Everything in Investor package',
+            'Quarterly strategy consultations',
+            'High-net-worth investment strategies',
+            'Tax optimization planning',
+            'Business acquisition frameworks',
+            'Legacy wealth planning'
+          ],
+          description: 'Join the ranks of financial moguls with advanced wealth-building strategies and personalized investment guidance for substantial portfolio growth.',
+          highlights: [
+            'Elite Investment Strategies',
+            'Personal Wealth Advisor',
+            'Legacy Planning'
+          ],
+          category: 'investment'
+        }
+      ]
+    }
+  ];
 
   const registerForPushNotificationsAsync = async () => {
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
@@ -94,20 +364,6 @@ const BlueprintScreen = () => {
     });
   };
 
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const contentOffsetX = event.nativeEvent.contentOffset.x;
-    const pageIndex = Math.round(contentOffsetX / width);
-    setCurrentPage(pageIndex);
-  };
-
-  const navigateToPage = (pageIndex: number) => {
-    scrollViewRef.current?.scrollTo({
-      x: pageIndex * width,
-      animated: true
-    });
-    setCurrentPage(pageIndex);
-  };
-
   const handleDocumentUpload = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
@@ -125,23 +381,25 @@ const BlueprintScreen = () => {
     }
   };
 
-  const sendEmailWithAttachment = async (blueprintType: 'Rich' | 'Wealthy') => {
-    const emailBody = `NEW ${blueprintType.toUpperCase()} BLUEPRINT PURCHASE REQUEST
+  const sendEmailWithAttachment = async (course: Course) => {
+    const emailBody = `NEW ${course.title.toUpperCase()} ENROLLMENT REQUEST
 
 Customer Details:
 ━━━━━━━━━━━━━━━━━━━━
 👤 Name: ${name}
 📧 Email: ${email}
 📱 Phone: ${phone}
-📄 Document: ${uploadedDoc?.name || 'Attached EFT Proof'}
-🎯 Blueprint Type: ${blueprintType} Version
+🎯 Course: ${course.title}
+💰 Price: ${course.price} / ${course.priceUSD}
+📄 Payment Proof: ${uploadedDoc?.name || 'Attached'}
+📚 Category: ${course.category}
 
 ━━━━━━━━━━━━━━━━━━━━
-REQUEST: Please send "Code Your Success: ${blueprintType} Blueprint" to this customer after verifying payment.
+REQUEST: Please send "${course.title}" course materials to this customer after verifying payment.
 
-${blueprintType === 'Wealthy' ? 'NOTE: This is a monthly subscription. Set up recurring consultation scheduling.' : ''}
+${course.id.includes('champion') || course.id.includes('mogul') || course.id.includes('visionary') || course.id.includes('wealthy') ? 'NOTE: This includes coaching/consultation sessions. Set up scheduling with customer.' : ''}
 
-This is an automated email from the Hex Hustlers app.`;
+This is an automated enrollment from the Hex Hustlers app.`;
 
     try {
       const isMailAvailable = await MailComposer.isAvailableAsync();
@@ -152,7 +410,7 @@ This is an automated email from the Hex Hustlers app.`;
 
       const result = await MailComposer.composeAsync({
         recipients: ['cashexerbusiness@gmail.com'],
-        subject: `🚀 New ${blueprintType} Blueprint Purchase - Action Required`,
+        subject: `🚀 New ${course.title} Enrollment - Action Required`,
         body: emailBody,
         attachments: uploadedDoc ? [uploadedDoc.uri] : undefined,
       });
@@ -164,7 +422,7 @@ This is an automated email from the Hex Hustlers app.`;
     }
   };
 
-  const handleBlueprintSubmit = async (blueprintType: 'Rich' | 'Wealthy') => {
+  const handleEnrollment = async (course: Course) => {
     if (!name || !email || !phone) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
@@ -177,7 +435,7 @@ This is an automated email from the Hex Hustlers app.`;
     setIsSubmitting(true);
 
     try {
-      const emailSent = await sendEmailWithAttachment(blueprintType);
+      const emailSent = await sendEmailWithAttachment(course);
       
       if (emailSent) {
         console.log('Email sent successfully');
@@ -186,20 +444,20 @@ This is an automated email from the Hex Hustlers app.`;
       }
       
       addNotification({
-        title: `🎉 ${blueprintType} Blueprint Purchase Submitted!`,
-        message: `Your ${blueprintType} Blueprint purchase request has been submitted successfully. You will receive your blueprint within 24 hours after payment verification.`,
+        title: `🎉 ${course.title} Enrollment Submitted!`,
+        message: `Your enrollment for ${course.title} has been submitted successfully. You will receive course access within 24 hours after payment verification.`,
         type: 'success',
         actionType: 'blueprint_purchase',
       });
 
       await showPushNotification(
-        '🎉 Application Submitted!',
-        `Your ${blueprintType} Blueprint purchase request has been submitted. You will receive your blueprint within 24 hours.`
+        '🎉 Enrollment Submitted!',
+        `Your ${course.title} enrollment has been submitted. Access within 24 hours.`
       );
 
       Alert.alert(
-        'Success!', 
-        `Your ${blueprintType} Blueprint application has been submitted successfully! We will verify your payment and send you the blueprint within 24 hours.`,
+        'Enrollment Successful!', 
+        `Your ${course.title} enrollment has been submitted! We will verify your payment and provide course access within 24 hours.`,
         [
           {
             text: 'View Notifications',
@@ -212,23 +470,26 @@ This is an automated email from the Hex Hustlers app.`;
         ]
       );
 
+      // Reset form
       setName('');
       setEmail('');
       setPhone('');
       setUploadedDoc(null);
+      setShowEnrollment(false);
+      setSelectedCourse(null);
 
     } catch (error) {
-      console.error('Blueprint submission error:', error);
+      console.error('Enrollment error:', error);
       Alert.alert('Error', 'Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handlePayPalPayment = (blueprintType: 'Rich' | 'Wealthy') => {
+  const handlePayPalPayment = (course: Course) => {
     addNotification({
-      title: `💳 ${blueprintType} Blueprint Payment Started`,
-      message: `You are being redirected to complete your ${blueprintType} Blueprint payment via PayPal. You will receive your blueprint after payment confirmation.`,
+      title: `💳 ${course.title} Payment Started`,
+      message: `You are being redirected to complete your payment via PayPal. Course access will be provided after payment confirmation.`,
       type: 'info',
       actionType: 'blueprint_purchase',
     });
@@ -236,38 +497,9 @@ This is an automated email from the Hex Hustlers app.`;
     Linking.openURL('https://paypal.me/CasHexer');
   };
 
-  const blueprintOptions = [
-    {
-      title: 'Code Your Success: Rich Version - Complete Developer Blueprint',
-      price: 'R500 / $29',
-      features: [
-        'Complete development guide with code samples',
-        'Project planning worksheets',
-        'Technology selection framework',
-        'Security implementation guide',
-        'Real-world code examples',
-        'Implementation checklists'
-      ],
-      description: 'Blueprint will be sent to your email after EFT or PayPal payment verification.',
-      buttonText: 'GET RICH VERSION',
-      action: () => navigateToPage(1)
-    },
-    {
-      title: 'Code Your Success: Wealthy Version - Premium Membership',
-      price: 'R2000 / $129 per consultation',
-      features: [
-        'Everything in Rich Version',
-        '1 Hour per consultation call',
-        'Additional project templates',
-        'Priority email support',
-        'Newly updated content',
-        'Exclusive developer resources'
-      ],
-      description: 'Blueprint sent via email after EFT/PayPal payment. Contact details for consultation calls will be provided.',
-      buttonText: 'GET WEALTHY VERSION',
-      action: () => navigateToPage(2)
-    }
-  ];
+  const handleDirectContact = () => {
+    router.push('/contact');
+  };
 
   const renderHeader = () => (
     <View style={styles.header}>
@@ -284,210 +516,303 @@ This is an automated email from the Hex Hustlers app.`;
     </View>
   );
 
-  const renderPageIndicator = () => (
-    <View style={styles.pageIndicatorContainer}>
-      {pageNames.map((name, index) => (
-        <TouchableOpacity 
-          key={index} 
-          onPress={() => navigateToPage(index)}
-          style={[
-            styles.pageIndicator,
-            currentPage === index && styles.pageIndicatorActive
-          ]}
-        >
-          <Text 
-            style={[
-              styles.pageIndicatorText,
-              currentPage === index && styles.pageIndicatorTextActive
-            ]}
-          >
-            {name}
-          </Text>
-        </TouchableOpacity>
-      ))}
-    </View>
+  const renderHeroSection = () => (
+    <Animated.View 
+      style={[
+        styles.heroSection,
+        {
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }]
+        }
+      ]}
+    >
+      <Text style={styles.heroTitle}>Chase Greatness</Text>
+      <Text style={styles.heroSubtitle}>Transform Your Life Through Expert-Crafted Courses</Text>
+      <View style={styles.heroUnderline} />
+      
+      <View style={styles.statsContainer}>
+        <View style={styles.statItem}>
+          <Text style={styles.statNumber}>100+</Text>
+          <Text style={styles.statLabel}>Students</Text>
+        </View>
+        <View style={styles.statDivider} />
+        <View style={styles.statItem}>
+          <Text style={styles.statNumber}>95%</Text>
+          <Text style={styles.statLabel}>Success Rate</Text>
+        </View>
+        <View style={styles.statDivider} />
+        <View style={styles.statItem}>
+          <Text style={styles.statNumber}>4.9</Text>
+          <Text style={styles.statLabel}>Rating</Text>
+        </View>
+      </View>
+    </Animated.View>
   );
 
-  const renderPricingPage = () => (
-    <View style={styles.pageContainer}>
-      <View style={styles.titleContainer}>
-        <Text style={styles.pageTitle}>Developer Blueprints</Text>
-        <View style={styles.titleUnderline} />
-        <Text style={styles.pageSubtitle}>Choose your success path</Text>
-      </View>
-      
-      <ScrollView contentContainerStyle={styles.pricingScrollContainer}>
-        {blueprintOptions.map((option, index) => (
-          <Animated.View 
-            key={index}
-            style={[
-              styles.blueprintCard,
-              {
-                opacity: fadeAnim,
-                transform: [{ 
-                  translateY: fadeAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [20 * (index + 1), 0]
-                  })
-                }]
-              }
-            ]}
-          >
-            <Text style={styles.blueprintTitle}>{option.title}</Text>
-            <Text style={styles.blueprintPrice}>{option.price}</Text>
-            
-            {option.features.map((feature, fIndex) => (
-              <Text key={fIndex} style={styles.featureText}>✓ {feature}</Text>
-            ))}
-            
-            <Text style={styles.descriptionText}>{option.description}</Text>
-            
-            <TouchableOpacity 
-              style={styles.blueprintButton}
-              onPress={option.action}
+  const renderCategoryTabs = () => (
+    <View style={styles.categoryTabsContainer}>
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.categoryTabsScroll}
+      >
+        {courseCategories.map((category, index) => {
+          const IconComponent = category.icon;
+          const isActive = activeCategory === category.id;
+          
+          return (
+            <TouchableOpacity
+              key={category.id}
+              style={[
+                styles.categoryTab,
+                isActive && styles.categoryTabActive,
+                { borderColor: category.color }
+              ]}
+              onPress={() => setActiveCategory(category.id)}
             >
-              <Text style={styles.blueprintButtonText}>{option.buttonText}</Text>
+              {Platform.OS === 'web' ? (
+                <IconComponent 
+                  size={20} 
+                  color={isActive ? '#ffffff' : category.color}
+                />
+              ) : (
+                <RNIonicons 
+                  name={category.id === 'tech' ? 'code-slash' : 
+                       category.id === 'fitness' ? 'fitness' :
+                       category.id === 'creative' ? 'brush' : 'trending-up'} 
+                  size={20} 
+                  color={isActive ? '#ffffff' : category.color}
+                />
+              )}
+              <Text style={[
+                styles.categoryTabText,
+                isActive && styles.categoryTabTextActive
+              ]}>
+                {category.title}
+              </Text>
             </TouchableOpacity>
-          </Animated.View>
-        ))}
-        
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => router.push('/services')}
-        >
-          {Platform.OS === 'web'
-            ? <IoArrowBack size={20} color="#ffffff" style={styles.backIcon} />
-            : <RNIonicons name="arrow-back" size={20} color="#ffffff" style={styles.backIcon} />}
-          <Text style={styles.backText}>BACK TO SERVICES</Text>
-        </TouchableOpacity>
+          );
+        })}
       </ScrollView>
     </View>
   );
 
-  const renderBlueprintForm = (blueprintType: 'Rich' | 'Wealthy') => (
-    <View style={styles.pageContainer}>
-      <View style={styles.titleContainer}>
-        <Text style={styles.pageTitle}>{blueprintType.toUpperCase()} BLUEPRINT</Text>
-        <Text style={styles.pageSubtitle}>
-          {blueprintType === 'Rich' ? 'Complete Developer\'s Guide - R500 / $29' : 'Premium Membership - R2000 / $129 per consultation'}
-        </Text>
-        <View style={styles.titleUnderline} />
+  const renderCourseCard = (course: Course, category: CourseCategory) => (
+    <Animated.View
+      key={course.id}
+      style={[
+        styles.courseCard,
+        { borderColor: category.color }
+      ]}
+    >
+      <View style={[styles.courseHeader, { backgroundColor: `${category.color}15` }]}>
+        <View style={styles.courseHeaderLeft}>
+          <Text style={styles.courseLevel}>{course.level}</Text>
+          <Text style={styles.courseDuration}>{course.duration}</Text>
+        </View>
+        <View style={[styles.coursePrice, { backgroundColor: category.color }]}>
+          <Text style={styles.coursePriceText}>{course.price}</Text>
+          <Text style={styles.coursePriceUSD}>{course.priceUSD}</Text>
+        </View>
       </View>
-      
-      <ScrollView contentContainerStyle={styles.formScrollContainer}>
-        <View style={styles.formCard}>
-          <TextInput
-            style={styles.formInput}
-            placeholder="Full Name"
-            placeholderTextColor="#00f0ff"
-            value={name}
-            onChangeText={setName}
-          />
-          <TextInput
-            style={styles.formInput}
-            placeholder="Email Address"
-            placeholderTextColor="#00f0ff"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-          />
-          <TextInput
-            style={styles.formInput}
-            placeholder="Phone Number"
-            placeholderTextColor="#00f0ff"
-            value={phone}
-            onChangeText={setPhone}
-            keyboardType="phone-pad"
-          />
-          
-          <View style={styles.bankingSection}>
-            <Text style={styles.bankingSectionTitle}>EFT Banking Details</Text>
-            <Text style={styles.bankingDetails}>• Bank Name: Nedbank</Text>
-            <Text style={styles.bankingDetails}>• Account Number: 1330568761</Text>
-            <Text style={styles.bankingDetails}>• Account Type: Current Account</Text>
-            <Text style={styles.bankingDetails}>• Account Holder: HEX HUSTLERS (Pty) Ltd</Text>
-            <Text style={styles.bankingDetails}>• Swift Code: NEDSZAJJ</Text>
-            <Text style={styles.bankingDetails}>• Branch Code: 198765</Text>
-          </View>
-          
-          <View style={styles.uploadSection}>
-            <Text style={styles.uploadTitle}>Upload Proof of Payment</Text>
-            <TouchableOpacity 
-              style={styles.uploadButton}
-              onPress={handleDocumentUpload}
-            >
-              {Platform.OS === 'web'
-                ? <IoCloudUploadOutline size={24} color="#00f0ff" />
-                : <RNIonicons name="cloud-upload-outline" size={24} color="#00f0ff" />}
-              <Text style={styles.uploadText}>
-                {uploadedDoc ? 'Document Uploaded' : 'Choose File'}
-              </Text>
-            </TouchableOpacity>
-            {uploadedDoc && (
-              <Text style={styles.uploadedFileName}>{uploadedDoc.name}</Text>
-            )}
-          </View>
 
-          {/* Payment Method Header */}
-          <View style={styles.paymentMethodContainer}>
-            <Text style={styles.paymentMethodTitle}>Choose Payment Method</Text>
-            <View style={styles.paymentMethodUnderline} />
-          </View>
-          
-          {/* Updated EFT Button */}
-          <TouchableOpacity 
-            style={[styles.eftButton, isSubmitting && styles.submitButtonDisabled]}
-            onPress={() => handleBlueprintSubmit(blueprintType)}
-            disabled={isSubmitting}
-          >
-            <View style={styles.eftButtonContent}>
-              {Platform.OS === 'web'
-                ? <IoMailOutline size={20} color="#ffffff" />
-                : <RNIonicons name="mail-outline" size={20} color="#ffffff" />}
-              <Text style={styles.eftButtonText}>
-                {isSubmitting ? 'SUBMITTING...' : 'EMAIL EFT'}
-              </Text>
+      <View style={styles.courseContent}>
+        <Text style={styles.courseTitle}>{course.title}</Text>
+        <Text style={styles.courseSubtitle}>{course.subtitle}</Text>
+        <Text style={styles.courseDescription}>{course.description}</Text>
+
+        <View style={styles.highlightsContainer}>
+          {course.highlights.map((highlight, index) => (
+            <View key={index} style={styles.highlightItem}>
+              {Platform.OS === 'web' ? (
+                <IoStarOutline size={16} color={category.color} />
+              ) : (
+                <RNIonicons name="star-outline" size={16} color={category.color} />
+              )}
+              <Text style={styles.highlightText}>{highlight}</Text>
             </View>
-            <Text style={styles.eftEmailText}>cashexerbusiness@gmail.com</Text>
-          </TouchableOpacity>
+          ))}
+        </View>
 
-          <TouchableOpacity 
-            style={styles.paymentButton}
-            onPress={() => handlePayPalPayment(blueprintType)}
-          >
-            {Platform.OS === 'web'
-              ? <IoLogoPaypal size={24} color="#ffffff" />
-              : <RNIonicons name="logo-paypal" size={24} color="#ffffff" />}
-            <Text style={styles.paymentButtonText}>Pay with PayPal</Text>
-          </TouchableOpacity>
-
-          {blueprintType === 'Wealthy' && (
-            <>
-              <Text style={styles.consultationText}>
-                Consultation calls available - submit your preferred date via email.
-              </Text>
-              <TouchableOpacity 
-                style={styles.contactButton}
-                onPress={() => router.push('/contact')}
-              >
-                {Platform.OS === 'web'
-                  ? <IoMailOutline size={20} color="#ffffff" />
-                  : <RNIonicons name="mail-outline" size={20} color="#ffffff" />}
-                <Text style={styles.contactButtonText}>Contact for Consultation Schedule</Text>
-              </TouchableOpacity>
-            </>
+        <View style={styles.featuresContainer}>
+          <Text style={styles.featuresTitle}>What You&apos;ll Get:</Text>
+          {course.features.slice(0, 4).map((feature, index) => (
+            <View key={index} style={styles.featureItem}>
+              {Platform.OS === 'web' ? (
+                <IoCheckmarkCircle size={14} color={category.color} />
+              ) : (
+                <RNIonicons name="checkmark-circle" size={14} color={category.color} />
+              )}
+              <Text style={styles.featureText}>{feature}</Text>
+            </View>
+          ))}
+          {course.features.length > 4 && (
+            <Text style={styles.moreFeatures}>
+              +{course.features.length - 4} more features
+            </Text>
           )}
         </View>
-        
-        <TouchableOpacity 
-          style={styles.backToPlansButton}
-          onPress={() => navigateToPage(0)}
-        >
-          <Text style={styles.backToPlansText}>BACK TO PLANS</Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </View>
+
+        <View style={styles.courseActions}>
+          <TouchableOpacity
+            style={[styles.enrollButton, { backgroundColor: category.color }]}
+            onPress={() => {
+              setSelectedCourse(course);
+              setShowEnrollment(true);
+            }}
+          >
+            <Text style={styles.enrollButtonText}>Enroll Now</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[styles.contactButton, { borderColor: category.color }]}
+            onPress={handleDirectContact}
+          >
+            <Text style={[styles.contactButtonText, { color: category.color }]}>
+              Ask Questions
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Animated.View>
   );
+
+  const renderCoursesSection = () => {
+    const activeCategories = courseCategories.filter(cat => cat.id === activeCategory);
+    
+    return (
+      <View style={styles.coursesSection}>
+        {activeCategories.map((category) => (
+          <View key={category.id}>
+            <View style={styles.categoryHeader}>
+              <Text style={[styles.categoryTitle, { color: category.color }]}>
+                {category.title}
+              </Text>
+              <Text style={styles.categorySubtitle}>{category.subtitle}</Text>
+            </View>
+            
+            {category.courses.map((course) => renderCourseCard(course, category))}
+          </View>
+        ))}
+      </View>
+    );
+  };
+
+  const renderEnrollmentForm = () => {
+    if (!selectedCourse || !showEnrollment) return null;
+
+    const category = courseCategories.find(cat => 
+      cat.courses.some(course => course.id === selectedCourse.id)
+    );
+
+    return (
+      <View style={styles.enrollmentOverlay}>
+        <View style={styles.enrollmentModal}>
+          <ScrollView contentContainerStyle={styles.enrollmentScrollContainer}>
+            <View style={styles.enrollmentHeader}>
+              <Text style={[styles.enrollmentTitle, { color: category?.color }]}>
+                Enroll in {selectedCourse.title}
+              </Text>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => {
+                  setShowEnrollment(false);
+                  setSelectedCourse(null);
+                }}
+              >
+                <Text style={styles.closeButtonText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.formContainer}>
+              <TextInput
+                style={styles.formInput}
+                placeholder="Full Name"
+                placeholderTextColor="#00f0ff"
+                value={name}
+                onChangeText={setName}
+              />
+              <TextInput
+                style={styles.formInput}
+                placeholder="Email Address"
+                placeholderTextColor="#00f0ff"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+              />
+              <TextInput
+                style={styles.formInput}
+                placeholder="Phone Number"
+                placeholderTextColor="#00f0ff"
+                value={phone}
+                onChangeText={setPhone}
+                keyboardType="phone-pad"
+              />
+
+              <View style={styles.bankingSection}>
+                <Text style={styles.bankingSectionTitle}>EFT Banking Details</Text>
+                <Text style={styles.bankingDetails}>• Bank Name: Nedbank</Text>
+                <Text style={styles.bankingDetails}>• Account Number: 1330568761</Text>
+                <Text style={styles.bankingDetails}>• Account Type: Current Account</Text>
+                <Text style={styles.bankingDetails}>• Account Holder: HEX HUSTLERS (Pty) Ltd</Text>
+                <Text style={styles.bankingDetails}>• Swift Code: NEDSZAJJ</Text>
+                <Text style={styles.bankingDetails}>• Branch Code: 198765</Text>
+              </View>
+
+              <View style={styles.uploadSection}>
+                <Text style={styles.uploadTitle}>Upload Proof of Payment</Text>
+                <TouchableOpacity 
+                  style={styles.uploadButton}
+                  onPress={handleDocumentUpload}
+                >
+                  {Platform.OS === 'web'
+                    ? <IoCloudUploadOutline size={24} color="#00f0ff" />
+                    : <RNIonicons name="cloud-upload-outline" size={24} color="#00f0ff" />}
+                  <Text style={styles.uploadText}>
+                    {uploadedDoc ? 'Document Uploaded' : 'Choose File'}
+                  </Text>
+                </TouchableOpacity>
+                {uploadedDoc && (
+                  <Text style={styles.uploadedFileName}>{uploadedDoc.name}</Text>
+                )}
+              </View>
+
+              <View style={styles.paymentMethodContainer}>
+                <Text style={styles.paymentMethodTitle}>Choose Payment Method</Text>
+                <View style={styles.paymentMethodUnderline} />
+              </View>
+
+              <TouchableOpacity 
+                style={[styles.eftButton, isSubmitting && styles.submitButtonDisabled]}
+                onPress={() => handleEnrollment(selectedCourse)}
+                disabled={isSubmitting}
+              >
+                <View style={styles.eftButtonContent}>
+                  {Platform.OS === 'web'
+                    ? <IoMailOutline size={20} color="#ffffff" />
+                    : <RNIonicons name="mail-outline" size={20} color="#ffffff" />}
+                  <Text style={styles.eftButtonText}>
+                    {isSubmitting ? 'SUBMITTING...' : 'EMAIL EFT PROOF'}
+                  </Text>
+                </View>
+                <Text style={styles.eftEmailText}>cashexerbusiness@gmail.com</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.paymentButton}
+                onPress={() => handlePayPalPayment(selectedCourse)}
+              >
+                {Platform.OS === 'web'
+                  ? <IoLogoPaypal size={24} color="#ffffff" />
+                  : <RNIonicons name="logo-paypal" size={24} color="#ffffff" />}
+                <Text style={styles.paymentButtonText}>Pay with PayPal</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </View>
+      </View>
+    );
+  };
 
   return (
     <ImageBackground
@@ -497,28 +822,28 @@ This is an automated email from the Hex Hustlers app.`;
     >
       <SafeAreaView style={styles.safeArea}>
         {renderHeader()}
-        {renderPageIndicator()}
         
-        <ScrollView
-          ref={scrollViewRef}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onScroll={handleScroll}
-          scrollEventThrottle={16}
+        <ScrollView 
+          style={styles.scrollContainer}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
         >
-          <View style={[styles.page, { width }]}>
-            {renderPricingPage()}
-          </View>
+          {renderHeroSection()}
+          {renderCategoryTabs()}
+          {renderCoursesSection()}
           
-          <View style={[styles.page, { width }]}>
-            {renderBlueprintForm('Rich')}
-          </View>
-          
-          <View style={[styles.page, { width }]}>
-            {renderBlueprintForm('Wealthy')}
-          </View>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => router.push('/services')}
+          >
+            {Platform.OS === 'web'
+              ? <IoArrowBack size={20} color="#ffffff" style={styles.backIcon} />
+              : <RNIonicons name="arrow-back" size={20} color="#ffffff" style={styles.backIcon} />}
+            <Text style={styles.backText}>BACK TO SERVICES</Text>
+          </TouchableOpacity>
         </ScrollView>
+
+        {renderEnrollmentForm()}
       </SafeAreaView>
     </ImageBackground>
   );
@@ -546,185 +871,329 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
   },
-  page: {
+  scrollContainer: {
     flex: 1,
   },
-  pageContainer: {
-    flex: 1,
-    padding: 10,
+  scrollContent: {
+    paddingBottom: 30,
   },
-  pageIndicatorContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 5,
-    paddingHorizontal: 5,
-  },
-  pageIndicator: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 15,
-    marginHorizontal: 2,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
-  pageIndicatorActive: {
-    backgroundColor: 'rgba(0,240,255,0.3)',
-    borderWidth: 1,
-    borderColor: '#00f0ff',
-  },
-  pageIndicatorText: {
-    color: '#ffffff',
-    fontSize: 12,
-  },
-  pageIndicatorTextActive: {
-    color: '#00f0ff',
-    fontWeight: 'bold',
-  },
-  titleContainer: {
+  heroSection: {
     alignItems: 'center',
-    marginBottom: 15,
-    marginTop: 5,
+    paddingHorizontal: 20,
+    paddingVertical: 30,
   },
-  pageTitle: {
-    fontSize: 24,
+  heroTitle: {
+    fontSize: 36,
     fontWeight: 'bold',
-    color: '#00f0ff',
-    textAlign: 'center',
-  },
-  pageSubtitle: {
-    fontSize: 14,
     color: '#ffffff',
-    marginTop: 5,
     textAlign: 'center',
+    marginBottom: 10,
+    textShadowColor: '#00f0ff',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 15,
   },
-  titleUnderline: {
-    height: 3,
-    width: 80,
-    borderRadius: 5,
+  heroSubtitle: {
+    fontSize: 16,
+    color: '#e0e0e0',
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 24,
+  },
+  heroUnderline: {
+    height: 4,
+    width: 120,
     backgroundColor: '#00f0ff',
-    marginTop: 8,
+    borderRadius: 2,
+    marginBottom: 30,
     shadowColor: '#00f0ff',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
     shadowRadius: 10,
   },
-  pricingScrollContainer: {
-    flexGrow: 1,
-    paddingBottom: 20,
-    paddingHorizontal: 5,
-  },
-  blueprintCard: {
-    backgroundColor: 'rgba(0,0,0,0.7)',
+  statsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     borderRadius: 15,
-    padding: 20,
-    marginBottom: 15,
+    paddingHorizontal: 20,
+    paddingVertical: 15,
     borderWidth: 1,
     borderColor: 'rgba(0,240,255,0.3)',
-    shadowColor: '#00f0ff',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 6,
   },
-  blueprintTitle: {
-    fontSize: 18,
+  statItem: {
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#00f0ff',
-    marginBottom: 8,
-    textAlign: 'center',
   },
-  blueprintPrice: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    marginBottom: 15,
-    textAlign: 'center',
-  },
-  featureText: {
-    fontSize: 14,
-    color: '#e0e0e0',
-    marginBottom: 5,
-    paddingLeft: 5,
-  },
-  descriptionText: {
+  statLabel: {
     fontSize: 12,
-    color: '#00f0ff',
-    marginTop: 10,
-    marginBottom: 10,
+    color: '#ffffff',
+    marginTop: 2,
+  },
+  statDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: 'rgba(0,240,255,0.5)',
+    marginHorizontal: 25,
+  },
+  categoryTabsContainer: {
+    marginBottom: 20,
+  },
+  categoryTabsScroll: {
+    paddingHorizontal: 20,
+  },
+  categoryTab: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 2,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    marginRight: 12,
+  },
+  categoryTabActive: {
+    backgroundColor: 'rgba(0,240,255,0.2)',
+  },
+  categoryTabText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  categoryTabTextActive: {
+    color: '#ffffff',
+  },
+  coursesSection: {
+    paddingHorizontal: 20,
+  },
+  categoryHeader: {
+    alignItems: 'center',
+    marginBottom: 25,
+  },
+  categoryTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 5,
+  },
+  categorySubtitle: {
+    fontSize: 16,
+    color: '#e0e0e0',
     textAlign: 'center',
     fontStyle: 'italic',
   },
-  blueprintButton: {
-    backgroundColor: 'rgba(0,240,255,0.2)',
-    borderRadius: 25,
-    paddingVertical: 12,
-    alignItems: 'center',
-    marginTop: 15,
+  courseCard: {
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    borderRadius: 20,
+    marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#00f0ff',
-    shadowColor: '#00f0ff',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    elevation: 10,
+  },
+  courseHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+  },
+  courseHeaderLeft: {
+    flex: 1,
+  },
+  courseLevel: {
+    fontSize: 14,
+    color: '#00f0ff',
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  courseDuration: {
+    fontSize: 12,
+    color: '#e0e0e0',
+  },
+  coursePrice: {
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  coursePriceText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  coursePriceUSD: {
+    fontSize: 12,
+    color: '#ffffff',
+    opacity: 0.9,
+  },
+  courseContent: {
+    padding: 20,
+    paddingTop: 0,
+  },
+  courseTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    marginBottom: 8,
+    lineHeight: 26,
+  },
+  courseSubtitle: {
+    fontSize: 16,
+    color: '#00f0ff',
+    marginBottom: 15,
+    fontWeight: '500',
+  },
+  courseDescription: {
+    fontSize: 14,
+    color: '#e0e0e0',
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  highlightsContainer: {
+    marginBottom: 20,
+  },
+  highlightItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  highlightText: {
+    fontSize: 14,
+    color: '#ffffff',
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  featuresContainer: {
+    marginBottom: 25,
+  },
+  featuresTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    marginBottom: 12,
+  },
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  featureText: {
+    fontSize: 13,
+    color: '#e0e0e0',
+    marginLeft: 10,
+    flex: 1,
+  },
+  moreFeatures: {
+    fontSize: 12,
+    color: '#00f0ff',
+    fontStyle: 'italic',
+    marginTop: 5,
+    marginLeft: 24,
+  },
+  courseActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  enrollButton: {
+    flex: 2,
+    paddingVertical: 15,
+    borderRadius: 12,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 5,
   },
-  blueprintButtonText: {
+  enrollButtonText: {
     color: '#ffffff',
-    fontWeight: 'bold',
     fontSize: 16,
-  },
-  backButton: {
-    backgroundColor: 'rgba(0,240,255,0.2)',
-    borderRadius: 25,
-    paddingVertical: 10,
-    alignItems: 'center',
-    marginTop: 10,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#00f0ff',
-  },
-  backIcon: {
-    marginRight: 8,
-  },
-  backText: {
-    color: '#ffffff',
     fontWeight: 'bold',
+  },
+  contactButton: {
+    flex: 1,
+    paddingVertical: 15,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 2,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+  },
+  contactButtonText: {
     fontSize: 14,
+    fontWeight: '600',
   },
-  formScrollContainer: {
-    flexGrow: 1,
-    paddingBottom: 20,
-    paddingHorizontal: 5,
+  enrollmentOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
   },
-  formCard: {
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    borderRadius: 15,
-    padding: 20,
-    marginBottom: 15,
+  enrollmentModal: {
+    backgroundColor: 'rgba(0,0,0,0.95)',
+    borderRadius: 20,
+    margin: 20,
+    maxHeight: height * 0.9,
+    width: width * 0.9,
     borderWidth: 1,
     borderColor: 'rgba(0,240,255,0.3)',
-    shadowColor: '#00f0ff',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 6,
+  },
+  enrollmentScrollContainer: {
+    padding: 20,
+  },
+  enrollmentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  enrollmentTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    flex: 1,
+  },
+  closeButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeButtonText: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  formContainer: {
+    gap: 15,
   },
   formInput: {
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    borderRadius: 10,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(0,240,255,0.5)',
     paddingHorizontal: 15,
     paddingVertical: 12,
     color: '#ffffff',
     fontSize: 14,
-    marginBottom: 15,
   },
   bankingSection: {
-    marginVertical: 15,
+    marginVertical: 10,
     padding: 15,
     backgroundColor: 'rgba(0,240,255,0.1)',
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(0,240,255,0.3)',
   },
@@ -736,14 +1205,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   bankingDetails: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#ffffff',
-    marginBottom: 5,
+    marginBottom: 4,
     textAlign: 'center',
   },
   uploadSection: {
-    marginVertical: 15,
     alignItems: 'center',
+    marginVertical: 10,
   },
   uploadTitle: {
     fontSize: 16,
@@ -752,10 +1221,10 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   uploadButton: {
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     paddingHorizontal: 20,
     paddingVertical: 15,
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(0,240,255,0.5)',
     alignItems: 'center',
@@ -774,10 +1243,10 @@ const styles = StyleSheet.create({
   },
   paymentMethodContainer: {
     alignItems: 'center',
-    marginVertical: 20,
+    marginVertical: 15,
   },
   paymentMethodTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#00f0ff',
     textAlign: 'center',
@@ -790,11 +1259,10 @@ const styles = StyleSheet.create({
   },
   eftButton: {
     backgroundColor: 'rgba(0,240,255,0.2)',
-    borderRadius: 15,
+    borderRadius: 12,
     paddingVertical: 15,
     paddingHorizontal: 20,
     alignItems: 'center',
-    marginBottom: 15,
     borderWidth: 1,
     borderColor: '#00f0ff',
     shadowColor: '#00f0ff',
@@ -816,7 +1284,7 @@ const styles = StyleSheet.create({
   },
   eftEmailText: {
     color: '#00f0ff',
-    fontSize: 14,
+    fontSize: 13,
     textAlign: 'center',
   },
   submitButtonDisabled: {
@@ -825,11 +1293,10 @@ const styles = StyleSheet.create({
   },
   paymentButton: {
     backgroundColor: 'rgba(0,240,255,0.2)',
-    borderRadius: 15,
+    borderRadius: 12,
     paddingVertical: 15,
     paddingHorizontal: 20,
     alignItems: 'center',
-    marginBottom: 15,
     borderWidth: 1,
     borderColor: 'rgba(0,240,255,0.5)',
     shadowColor: '#00f0ff',
@@ -846,41 +1313,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 10,
   },
-  consultationText: {
-    fontSize: 12,
-    color: '#00f0ff',
-    textAlign: 'center',
-    marginVertical: 15,
-    fontStyle: 'italic',
-  },
-  contactButton: {
-    backgroundColor: 'rgba(0,240,255,0.15)',
-    borderRadius: 15,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    marginTop: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(0,240,255,0.4)',
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  contactButtonText: {
-    color: '#ffffff',
-    fontWeight: 'bold',
-    fontSize: 14,
-    marginLeft: 8,
-  },
-  backToPlansButton: {
+  backButton: {
     backgroundColor: 'rgba(0,240,255,0.2)',
     borderRadius: 25,
-    paddingVertical: 10,
+    paddingVertical: 12,
     alignItems: 'center',
-    marginTop: 15,
+    marginHorizontal: 20,
+    marginTop: 30,
+    flexDirection: 'row',
+    justifyContent: 'center',
     borderWidth: 1,
     borderColor: '#00f0ff',
   },
-  backToPlansText: {
+  backIcon: {
+    marginRight: 8,
+  },
+  backText: {
     color: '#ffffff',
     fontWeight: 'bold',
     fontSize: 14,

@@ -192,7 +192,7 @@ const ContactScreen = () => {
       action: handleLinkedInAction
     },
     {
-      type: 'Phone',
+      type: 'Phone/Whatsapp',
       value: '+27 71 400 8892',
       icon: Platform.OS === 'web'
         ? <IoCall size={30} color="#00f0ff" />
