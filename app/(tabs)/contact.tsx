@@ -3,21 +3,21 @@ import { FontAwesome5 as RNFontAwesome5, Ionicons as RNIonicons, MaterialCommuni
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import { FaChevronRight, FaLinkedin } from 'react-icons/fa';
-import { IoArrowBack, IoBusinessOutline, IoCall, IoMail, IoNotifications, IoTimeOutline, IoSend, IoPerson, IoText } from 'react-icons/io5';
+import { IoArrowBack, IoBusinessOutline, IoCall, IoChatbubblesOutline, IoMail, IoNotifications, IoPerson, IoSend, IoText, IoTimeOutline } from 'react-icons/io5';
 import {
+  Alert,
   Animated,
   Image,
   ImageBackground,
   Linking,
   Platform,
   SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
-  Alert,
-  ScrollView
+  View
 } from 'react-native';
 
 // Contact information type
@@ -32,6 +32,7 @@ type ContactInfo = {
 type FormData = {
   name: string;
   email: string;
+  phone: string;
   service: string;
   message: string;
 };
@@ -45,6 +46,7 @@ const ContactScreen = () => {
   const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
+    phone: '',
     service: '',
     message: ''
   });
@@ -103,12 +105,27 @@ const ContactScreen = () => {
     Linking.openURL('https://www.linkedin.com/company/hex-hustlers/?viewAsMember=true');
   };
 
+  const handleWhatsAppCommunityAction = () => {
+    Linking.openURL('https://chat.whatsapp.com/DQ5INgMNoDU1yGoYmfxOz8');
+  };
+
   // WhatsApp message handler
   const sendWhatsAppMessage = () => {
-    const { name, email, service, message } = formData;
-    const whatsappMessage = `Hi! I'm interested in your services.\n\nName: ${name}\nEmail: ${email}\nService: ${service}\n\nMessage: ${message}\n\nSent from Hex Hustlers App`;
+    const { name, email, phone, service, message } = formData;
+    const whatsappMessage = `🔹 NEW SERVICE INQUIRY 🔹
+
+👤 Name: ${name}
+📧 Email: ${email}
+📱 Phone: ${phone}
+🛠️ Service: ${service}
+
+💬 Message:
+${message}
+
+📲 Sent from Hex Hustlers App`;
+    
     const encodedMessage = encodeURIComponent(whatsappMessage);
-    const whatsappUrl = `https://wa.me/27714008892?text=${encodedMessage}`;
+    const whatsappUrl = `https://wa.me/message/RU5ARKNRHLFKG1?text=${encodedMessage}`;
     
     Linking.openURL(whatsappUrl);
     addServiceContactNotification();
@@ -116,9 +133,19 @@ const ContactScreen = () => {
 
   // Email submission handler
   const sendEmail = () => {
-    const { name, email, service, message } = formData;
+    const { name, email, phone, service, message } = formData;
     const subject = `New Service Inquiry: ${service}`;
-    const body = `Name: ${name}\nEmail: ${email}\nService: ${service}\n\nMessage:\n${message}\n\nSent from Hex Hustlers App`;
+    const body = `NEW SERVICE INQUIRY
+
+Name: ${name}
+Email: ${email}
+Phone: ${phone}
+Service: ${service}
+
+Message:
+${message}
+
+Sent from Hex Hustlers App`;
     const emailUrl = `mailto:cashexerbusiness@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     
     Linking.openURL(emailUrl);
@@ -127,47 +154,24 @@ const ContactScreen = () => {
 
   // Form submission handler
   const handleSubmit = () => {
-    if (!formData.name || !formData.email || !formData.service || !formData.message) {
+    if (!formData.name || !formData.email || !formData.phone || !formData.service || !formData.message) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
 
     setIsSubmitting(true);
     
-    // Show options for sending
-    Alert.alert(
-      'Send Message',
-      'How would you like to send your message?',
-      [
-        {
-          text: 'WhatsApp',
-          onPress: () => {
-            sendWhatsAppMessage();
-            resetForm();
-            setIsSubmitting(false);
-          }
-        },
-        {
-          text: 'Email',
-          onPress: () => {
-            sendEmail();
-            resetForm();
-            setIsSubmitting(false);
-          }
-        },
-        {
-          text: 'Cancel',
-          style: 'cancel',
-          onPress: () => setIsSubmitting(false)
-        }
-      ]
-    );
+    // Directly send WhatsApp message to business account
+    sendWhatsAppMessage();
+    resetForm();
+    setIsSubmitting(false);
   };
 
   const resetForm = () => {
     setFormData({
       name: '',
       email: '',
+      phone: '',
       service: '',
       message: ''
     });
@@ -192,12 +196,20 @@ const ContactScreen = () => {
       action: handleLinkedInAction
     },
     {
-      type: 'Phone/Whatsapp',
+      type: 'Phone/WhatsApp',
       value: '+27 71 400 8892',
       icon: Platform.OS === 'web'
         ? <IoCall size={30} color="#00f0ff" />
         : <RNIonicons name="call" size={30} color="#00f0ff" />, 
       action: handlePhoneAction
+    },
+    {
+      type: 'WhatsApp Community',
+      value: 'Join our tech community',
+      icon: Platform.OS === 'web'
+        ? <IoChatbubblesOutline size={30} color="#00f0ff" />
+        : <RNIonicons name="chatbubbles-outline" size={30} color="#00f0ff" />, 
+      action: handleWhatsAppCommunityAction
     }
   ];
 
@@ -334,6 +346,24 @@ const ContactScreen = () => {
             </View>
           </View>
 
+          {/* Phone Input */}
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Phone Number *</Text>
+            <View style={styles.inputWrapper}>
+              {Platform.OS === 'web'
+                ? <IoCall size={20} color="#00f0ff" />
+                : <RNIonicons name="call" size={20} color="#00f0ff" />}
+              <TextInput
+                style={[styles.textInput, { marginLeft: 12 }]}
+                placeholder="Enter your phone number"
+                placeholderTextColor="#888"
+                value={formData.phone}
+                onChangeText={(text) => setFormData({ ...formData, phone: text })}
+                keyboardType="phone-pad"
+              />
+            </View>
+          </View>
+
           {/* Service Selection */}
           {renderServicePicker()}
 
@@ -368,7 +398,7 @@ const ContactScreen = () => {
               ? <IoSend size={20} color="#ffffff" />
               : <RNIonicons name="send" size={20} color="#ffffff" />}
             <Text style={[styles.submitText, { marginLeft: 10 }]}>
-              {isSubmitting ? 'Sending...' : 'Send Message'}
+              {isSubmitting ? 'Sending...' : 'Send to WhatsApp'}
             </Text>
           </TouchableOpacity>
         </View>

@@ -85,7 +85,7 @@ const ServicesScreen = () => {
       description: 'Full-stack web solutions built with modern frameworks like React, Next.js, and Node.js. From concept to deployment.',
       features: ['Responsive Design', 'SEO Optimized', 'Database Integration', 'User Authentication', 'Payment Processing'],
       deliveryTime: '4-8 weeks',
-      price: 'From R15,000',
+      price: 'From R15,000|$800 - $2,500',
       category: 'development',
       isPopular: true,
       icon: Platform.OS === 'web'
@@ -98,7 +98,7 @@ const ServicesScreen = () => {
       description: 'Native iOS/Android apps and cross-platform solutions using React Native and Flutter for maximum reach.',
       features: ['Cross-Platform', 'Native Performance', 'Push Notifications', 'App Store Deployment', 'Analytics Integration'],
       deliveryTime: '6-12 weeks',
-      price: 'From R25,000',
+      price: 'From R25,000|$1,200 - $4,200',
       category: 'development',
       icon: Platform.OS === 'web'
         ? <FaMobileAlt size={28} color="#00f0ff" />
@@ -110,7 +110,7 @@ const ServicesScreen = () => {
       description: 'Complete online stores with inventory management, payment gateways, and customer analytics for business growth.',
       features: ['Payment Gateway', 'Inventory Management', 'Order Tracking', 'Customer Analytics', 'Mobile Optimized'],
       deliveryTime: '6-10 weeks',
-      price: 'From R20,000',
+      price: 'From R20,000|$1,000 - $3,500',
       category: 'development',
       icon: Platform.OS === 'web'
         ? <FaShoppingCart size={28} color="#00f0ff" />
@@ -122,7 +122,7 @@ const ServicesScreen = () => {
       description: 'RESTful APIs, GraphQL endpoints, and third-party integrations that connect your systems seamlessly.',
       features: ['RESTful Design', 'GraphQL Support', 'Third-party Integration', 'Rate Limiting', 'Comprehensive Documentation'],
       deliveryTime: '2-6 weeks',
-      price: 'From R8,000',
+      price: 'From R8,000|$400 - $1,400',
       category: 'development',
       icon: Platform.OS === 'web'
         ? <MdApi size={28} color="#00f0ff" />
@@ -138,7 +138,7 @@ const ServicesScreen = () => {
       description: 'User-centered design that converts visitors into customers through intuitive interfaces and seamless experiences.',
       features: ['User Research', 'Wireframing', 'Interactive Prototypes', 'Design System', 'Usability Testing'],
       deliveryTime: '3-6 weeks',
-      price: 'From R12,000',
+      price: 'From R12,000|$600 - $2,000',
       category: 'design',
       isPopular: true,
       icon: Platform.OS === 'web'
@@ -151,7 +151,7 @@ const ServicesScreen = () => {
       description: 'Complete brand identity and digital strategy to establish your unique market position and drive growth.',
       features: ['Brand Identity', 'Logo Design', 'Style Guide', 'Marketing Strategy', 'Content Planning'],
       deliveryTime: '2-4 weeks',
-      price: 'From R10,000',
+      price: 'From R10,000|$500 - $1,700',
       category: 'design',
       icon: Platform.OS === 'web'
         ? <FaUsers size={28} color="#00f0ff" />
@@ -167,7 +167,7 @@ const ServicesScreen = () => {
       description: 'Scalable cloud deployment, CI/CD pipelines, and infrastructure automation for reliable, high-performance applications.',
       features: ['AWS/Azure Setup', 'CI/CD Pipelines', 'Auto Scaling', 'Monitoring', 'Backup Solutions'],
       deliveryTime: '1-3 weeks',
-      price: 'From R6,000',
+      price: 'From R6,000|$300 - $1,000',
       category: 'infrastructure',
       icon: Platform.OS === 'web'
         ? <FaCloudUploadAlt size={28} color="#00f0ff" />
@@ -179,7 +179,7 @@ const ServicesScreen = () => {
       description: 'Comprehensive security assessments, implementation of protective measures, and compliance with industry standards.',
       features: ['Security Audit', 'Penetration Testing', 'Compliance Setup', 'Data Encryption', 'Incident Response'],
       deliveryTime: '2-4 weeks',
-      price: 'From R15,000',
+      price: 'From R15,000|$700 - $2,500',
       category: 'infrastructure',
       icon: Platform.OS === 'web'
         ? <MdOutlineSecurity size={28} color="#00f0ff" />
@@ -191,7 +191,7 @@ const ServicesScreen = () => {
       description: 'Custom AI implementations, chatbots, and process automation to streamline operations and enhance user experience.',
       features: ['Custom AI Models', 'Chatbot Development', 'Process Automation', 'Data Analytics', 'Machine Learning'],
       deliveryTime: '4-8 weeks',
-      price: 'From R18,000',
+      price: 'From R18,000|$900 - $3,000',
       category: 'infrastructure',
       isPopular: true,
       icon: Platform.OS === 'web'
@@ -204,7 +204,7 @@ const ServicesScreen = () => {
       description: 'Continuous updates, security patches, performance optimization, and technical support to keep your systems running smoothly.',
       features: ['24/7 Monitoring', 'Security Updates', 'Performance Optimization', 'Bug Fixes', 'Feature Updates'],
       deliveryTime: 'Ongoing',
-      price: 'From R2,500/month',
+      price: 'From R2,500/month|$150 - $500/mo',
       category: 'infrastructure',
       icon: Platform.OS === 'web'
         ? <MdSync size={28} color="#00f0ff" />
@@ -356,7 +356,10 @@ const ServicesScreen = () => {
               <Text style={styles.serviceTitle}>{service.title}</Text>
               <View style={styles.serviceMeta}>
                 <Text style={styles.serviceDelivery}>{service.deliveryTime}</Text>
-                <Text style={styles.servicePrice}>{service.price}</Text>
+                <View style={styles.priceContainer}>
+                  <Text style={styles.servicePriceZAR}>{service.price.split('|')[0]}</Text>
+                  <Text style={styles.servicePriceUSD}>{service.price.split('|')[1]}</Text>
+                </View>
               </View>
             </View>
           </View>
@@ -381,8 +384,14 @@ const ServicesScreen = () => {
             )}
           </View>
 
+          <View style={styles.priceNote}>
+            <Text style={styles.priceNoteText}>
+              * Final price determined by project scope and requirements
+            </Text>
+          </View>
+
           <TouchableOpacity style={styles.getQuoteButton} onPress={handleServicePress}>
-            <Text style={styles.getQuoteText}>Get Quote</Text>
+            <Text style={styles.getQuoteText}>Get Custom Quote</Text>
             {Platform.OS === 'web' ? (
               <IoArrowForward size={16} color="#ffffff" />
             ) : (
@@ -477,7 +486,7 @@ const ServicesScreen = () => {
           <View style={styles.servicesSection}>
             <Text style={styles.sectionTitle}>Our Services</Text>
             <Text style={styles.sectionSubtitle}>
-              Choose from our comprehensive range of technology solutions
+              Flexible pricing in USD and ZAR, tailored to your specific project needs
             </Text>
             
             <View style={styles.servicesGrid}>
@@ -501,7 +510,7 @@ const ServicesScreen = () => {
           <View style={styles.ctaSection}>
             <Text style={styles.ctaTitle}>Ready to Get Started?</Text>
             <Text style={styles.ctaDescription}>
-              Let&apos;s discuss your project requirements and create something amazing together.
+              Let&apos;s discuss your project requirements and create a custom solution that fits your budget and timeline.
             </Text>
             
             <TouchableOpacity 
@@ -511,7 +520,7 @@ const ServicesScreen = () => {
               {Platform.OS === 'web'
                 ? <IoCallOutline size={20} color="#ffffff" style={styles.ctaIcon} />
                 : <RNIonicons name="call-outline" size={20} color="#ffffff" style={styles.ctaIcon} />}
-              <Text style={styles.ctaButtonText}>Start Your Project</Text>
+              <Text style={styles.ctaButtonText}>Get Your Free Quote</Text>
             </TouchableOpacity>
           </View>
         </Animated.ScrollView>
@@ -734,10 +743,21 @@ const styles = StyleSheet.create({
     color: '#00f0ff',
     fontWeight: '600',
   },
-  servicePrice: {
+  priceContainer: {
+    alignItems: 'flex-end',
+  },
+  servicePriceZAR: {
     fontSize: 14,
     color: '#ffffff',
     fontWeight: 'bold',
+    lineHeight: 16,
+  },
+  servicePriceUSD: {
+    fontSize: 10,
+    color: '#e0e0e0',
+    fontWeight: '500',
+    opacity: 0.8,
+    marginTop: 2,
   },
   serviceDescription: {
     fontSize: 14,
@@ -746,7 +766,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   featuresContainer: {
-    marginBottom: 25,
+    marginBottom: 15,
   },
   featureItem: {
     flexDirection: 'row',
@@ -765,6 +785,20 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     marginTop: 5,
     marginLeft: 26,
+  },
+  priceNote: {
+    backgroundColor: 'rgba(0,240,255,0.05)',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(0,240,255,0.2)',
+  },
+  priceNoteText: {
+    fontSize: 11,
+    color: '#00f0ff',
+    fontStyle: 'italic',
+    textAlign: 'center',
   },
   getQuoteButton: {
     flexDirection: 'row',
